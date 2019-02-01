@@ -15,18 +15,15 @@ public class playerMove : MonoBehaviour {
     // Update is called once per frame
     void Update() {
 
-        if (Input.GetKey(KeyCode.RightArrow ) || Input.GetKey(KeyCode.LeftArrow  )) {
-            float xAxis = Input.GetAxis("Horizontal");
+        if (Input.GetKey(KeyCode.RightArrow)) {
             Vector3 eulerAngles = transform.localEulerAngles;
-
-            if (xAxis < 0f) {
-                eulerAngles.y = 180f;
-            } else if (xAxis > 0f) {
-                eulerAngles.y = 0f;
-            }
-
+            eulerAngles.y = 0f;
             transform.localRotation = Quaternion.Euler(eulerAngles);
-
+            anim.SetFloat("walk", 1, 0.2f, Time.deltaTime);
+        }else if(Input.GetKey(KeyCode.LeftArrow)){
+            Vector3 eulerAngles = transform.localEulerAngles;
+            eulerAngles.y = 180f;
+            transform.localRotation = Quaternion.Euler(eulerAngles);
             anim.SetFloat("walk", 1, 0.2f, Time.deltaTime);
         } else{
             anim.SetFloat("walk", 0, 0.2f, Time.deltaTime);
