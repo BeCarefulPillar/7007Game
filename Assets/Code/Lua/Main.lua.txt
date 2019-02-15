@@ -1,0 +1,5 @@
+--Main.lua — 寻找到GameInit的脚本、执行初始化Init操作。开始初始化lua脚本
+require "GameInit" 
+-- require 寻找到GameInit.lua脚本的引用
+
+GameInit.Init();
