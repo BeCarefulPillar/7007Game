@@ -20,12 +20,13 @@ public class LuaHelperManager {
     /// </summary>
     /// <param name="path"> 路径 </param>
     /// <param name="OnCreate"> 创建出来的委托回调 </param>
-    public void LoadUI(string path, XLuaCustomExport.OnCreate onCreate) {
+    public void LoadUI(string path, XLuaCustomExport.OnCreate onCreate = null) {
         Debug.Log("加载UI窗口 =========== " + path);
         GameObject obj =  GameObject.Instantiate(Resources.Load<GameObject>(path), parent.transform);
-        if (onCreate != null)
-        {
+        if (obj != null) {
             obj.AddComponent<LuaViewBehaviour>();
+        }
+        if (onCreate != null){
             onCreate(obj);
         }
     }

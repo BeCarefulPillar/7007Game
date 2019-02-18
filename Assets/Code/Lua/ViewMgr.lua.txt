@@ -1,0 +1,20 @@
+-- CtrlMgr.lua 脚本 初始化所有的控制器脚本、存储到table表中
+require "Define"
+
+--注册UI控制器 （动态添加）------------------
+require "Modules/UIRoot/UIRootView"
+
+local ViewMgr = {}
+local viewList = {}
+
+function ViewMgr:LoadView(viewName, func)
+    CS.LuaHelperManager.Instance:LoadUI(viewName, func);
+    viewList[viewName] = UIRootView.New()
+    return ViewMgr
+end
+
+function ViewMgr:GetView(viewName)
+    return viewList[viewName]
+end
+
+return ViewMgr

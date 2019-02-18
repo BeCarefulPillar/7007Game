@@ -2,8 +2,8 @@
 
 -- 没新加一个窗口、要在该脚本添加该窗口的引用  同时在CtrlMgr.lua中注册该窗口  GameInit.lua中注册它对应的View视图脚本
 
-CtrlNames = {
-    UIRootCtrl = "UIRootCtrl"
+ViewNames = {
+    UIRootView = "UIRootView"
 }
 
 --这里要把常用的引擎类型加起来
