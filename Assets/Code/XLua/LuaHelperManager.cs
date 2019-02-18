@@ -25,6 +25,8 @@ public class LuaHelperManager {
         GameObject obj =  GameObject.Instantiate(Resources.Load<GameObject>(path), parent.transform);
         if (obj != null) {
             obj.AddComponent<LuaViewBehaviour>();
+        }else {
+            return;
         }
         if (onCreate != null){
             onCreate(obj);
