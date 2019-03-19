@@ -16,5 +16,6 @@ function CtrlMgr.Init()
 end
 
 function CtrlMgr.GetCtrl(ctrlName)
+    print("1111111111111111")
     return ctrlList[ctrlName]
 end
