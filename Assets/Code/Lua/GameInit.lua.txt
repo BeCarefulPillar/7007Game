@@ -1,12 +1,14 @@
---GameInit.Lua 脚本、初始化所有的View脚本
-
+--GameInit.Luager = require("DataManager")
  -- CtrlMgr.lua  管理控制器脚本、里面table 表存储其名字及其对应的ctrl脚本的实例 --
 local M = {};
 
---初始化方法 view 同时加载
+--初始化方法 view 同时加载 player数据
 function M:Init()
     --这里的方法就是负责把UI给克隆出来遇到方法时 使用 : 加上后面的方法
+    local res = {player = {id = 610666, name = "haoge"},}
+    dataManager.playerCreate(res)
     VIEW_MGR:LoadView("ViewPrefab/UIRootView")
 end
-
+-- 脚本、初始化所有的View脚本
 return M
+local dataMana

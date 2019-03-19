@@ -1,0 +1,28 @@
+
+local M = {}
+
+local function toClass(t)
+    t = t or {
+        body = {}, 
+    }
+    return M.makeObject({
+        id = t.id or "12345",
+        name = t.name or "111111111"
+    })
+end
+
+function M:getName()
+    return self.name
+end
+
+function M.newByTable(t)
+    local player = toClass(t)
+    return player
+end
+
+function M.makeObject(t)
+    return setmetatable(t, {__index=M})
+end
+
+
+return M
