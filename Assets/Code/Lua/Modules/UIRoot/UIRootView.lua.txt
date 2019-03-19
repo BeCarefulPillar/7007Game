@@ -14,7 +14,6 @@ end
 -- 按钮点击的方法
 function UIRootView.OnBtnOpenTaskClick()
     print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-    print(PLAYER_DATA:getName())
 end
 
 
@@ -25,8 +24,6 @@ function UIRootView.InitView()
     this.btnOpenTask = transform:Find("Bg/btnOpenTask"):GetComponent("Button");
 
 end
-
-
 
 function UIRootView.awake(obj)
     print("22222222222222")
