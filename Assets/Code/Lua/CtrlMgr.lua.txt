@@ -12,6 +12,7 @@ function CtrlMgr.Init()
     ctrlList[CtrlNames.UIRootCtrl] = UIRootCtrl.New()
     print("11111111111")
     print("2222222222222")
+    print("333333333333333333")
     return this
 end
 
