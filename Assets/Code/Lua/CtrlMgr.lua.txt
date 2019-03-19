@@ -10,6 +10,7 @@ local ctrlList = {}
 
 function CtrlMgr.Init()
     ctrlList[CtrlNames.UIRootCtrl] = UIRootCtrl.New()
+    print("11111111111 ")
     return this
 end
 
