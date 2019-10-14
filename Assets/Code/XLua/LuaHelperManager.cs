@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using XLua;
 
-[LuaCallCSharp]
 public class LuaHelperManager {
     protected static LuaHelperManager mInstance;
     protected LuaHelperManager() {}
