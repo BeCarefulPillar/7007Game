@@ -5,8 +5,6 @@ local this = UIRootView;
 local transform;  -- 自身的transform引用
 local gameobject; -- 自身的gameobject引用
 
-
-
 function UIRootView.New()
     return this;
 end
@@ -19,10 +17,9 @@ end
 
 --初始化面板  找到UI组件
 function UIRootView.InitView()
-    --寻找组件  
+    --寻找组件
     print("333333333333333")
     this.btnOpenTask = transform:Find("Bg/btnOpenTask"):GetComponent("Button");
-
 end
 
 function UIRootView.awake(obj)

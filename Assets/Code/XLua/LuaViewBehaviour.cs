@@ -1,74 +1,122 @@
-﻿//加载出来的UI窗体Panel挂载上LuaViewBehaviour脚本、同时间将Unity中的脚本生命周期方法回调给Unity
-using System;
-using UnityEngine;
-using XLua;
-
-public class LuaViewBehaviour : MonoBehaviour {
-    [CSharpCallLua]
-    public delegate void delLuaAwake(GameObject obj);
-    LuaViewBehaviour.delLuaAwake luaAwake;
-
-    [CSharpCallLua]
-    public delegate void delLuaStart();
-    LuaViewBehaviour.delLuaStart luaStart;
-
-    [CSharpCallLua]
-    public delegate void delLuaUpdate();
-    LuaViewBehaviour.delLuaUpdate luaUpdate;
-
-    [CSharpCallLua]
-    public delegate void delLuaOnDestroy();
-    LuaViewBehaviour.delLuaOnDestroy luaOnDestroy;
-
-    private LuaTable scriptEnv;
-    private LuaEnv luaEnv;
-
-    private void Awake() {
-        //获取全局的Lua环境变量
-        luaEnv = LuaMgr.luaEnv;
-
-        scriptEnv = luaEnv.NewTable();
-
-        LuaTable meta = luaEnv.NewTable();
-        meta.Set("__index", luaEnv.Global);
-        scriptEnv.SetMetaTable(meta);
-        meta.Dispose();
-
-        string prefabName = name;
-        //去掉克隆的关键字
-        if (prefabName.Contains("(Clone)")) {
-            prefabName = prefabName.Split(new string[] { "(Clone)" }, StringSplitOptions.RemoveEmptyEntries)[0];
-        }
-
-        prefabName = prefabName.Replace("pan_", "");
-
-        //  prefabName + ".awake"  要对应Lua脚本中View的方法
-        luaAwake = scriptEnv.GetInPath<LuaViewBehaviour.delLuaAwake>(prefabName + ".awake");
-        luaStart = scriptEnv.GetInPath<LuaViewBehaviour.delLuaStart>(prefabName + ".start");
-        luaUpdate = scriptEnv.GetInPath<LuaViewBehaviour.delLuaUpdate>(prefabName + ".update");
-        luaOnDestroy = scriptEnv.GetInPath<LuaViewBehaviour.delLuaOnDestroy>(prefabName + ".destroy");
-
-        scriptEnv.Set("self", this);
-        if (luaAwake != null) {
-            luaAwake(this.gameObject);
-        }
-    }
-
-    private void Start() {
-
-        if (luaStart != null) {
-            luaStart();
-        }
-    }
-
-    private void OnDestroy() {
-        if (luaOnDestroy != null) {
-            luaOnDestroy();
-        }
-        luaAwake = null;
-        luaOnDestroy = null;
-        luaUpdate = null;
-        luaStart = null;
-
-    }
-}
+﻿// // Copyright (C) 2017 Joywinds Inc.
+// 
+// using UnityEngine;
+// 
+// public class LuaViewBehaviour : MonoBehaviour {
+//     public delegate void MonoBehaviourEvent(XLua.LuaTable luaView, XLua.LuaTable b);
+// 
+//     private MonoBehaviourEvent mLuaStart;
+//     private MonoBehaviourEvent mLuaUpdate;
+//     private MonoBehaviourEvent mLuaFixedUpdate;
+//     private MonoBehaviourEvent mLuaLateUpdate;
+//     private MonoBehaviourEvent mLuaOnDisable;
+//     private MonoBehaviourEvent mLuaOnEnable;
+//     private MonoBehaviourEvent mLuaOnDestroy;
+//     private MonoBehaviourEvent mLuaOnGUI;
+// 
+//     protected XLua.LuaTable mLuaModule;
+//     protected XLua.LuaTable mLuaObject;
+// 
+//     public XLua.LuaTable LuaView {
+//         get {
+//             return mLuaModule;
+//         }
+//     }
+// 
+//     public void SetLuaModule(XLua.LuaTable module) {
+//         mLuaModule = module;
+//         mLuaStart = module.Get<string, MonoBehaviourEvent>("Start");
+//         mLuaUpdate = module.Get<string, MonoBehaviourEvent>("Update");
+//         mLuaFixedUpdate = module.Get<string, MonoBehaviourEvent>("FixedUpdate");
+//         mLuaLateUpdate = module.Get<string, MonoBehaviourEvent>("LateUpdate");
+//         mLuaOnDisable = module.Get<string, MonoBehaviourEvent>("OnDisable");
+//         mLuaOnEnable = module.Get<string, MonoBehaviourEvent>("OnEnable");
+//         mLuaOnDestroy = module.Get<string, MonoBehaviourEvent>("OnDestroy");
+//         mLuaOnGUI = module.Get<string, MonoBehaviourEvent>("OnGUI");
+// 
+//         mLuaObject = LuaMgr.Instance.Env.NewTable();
+//         mLuaObject.Set<string, GameObject>("gameObject", gameObject);
+//         mLuaObject.Set<string, Transform>("transform", transform);
+//     }
+// 
+//     public object[] Call(string funcName, params object[] args) {
+//         XLua.LuaFunction f = mLuaModule.Get<string, XLua.LuaFunction>(funcName);
+//         if (f == null) {
+//             throw new XLua.LuaException("No lua function: " + funcName);
+//         }
+//         object[] allArgs;
+//         if (args == null) {
+//             allArgs = new object[1];
+//         } else {
+//             allArgs = new object[args.Length + 1];
+//             for (int i = 0; i < args.Length; i++) {
+//                 allArgs[i + 1] = args[i];
+//             }
+//         }
+//         allArgs[0] = mLuaModule;
+//         return f.Call(allArgs);
+//     }
+// 
+//     void Start() {
+//         if (mLuaStart != null) {
+//             mLuaStart(mLuaModule, mLuaObject);
+//         }
+//     }
+// 
+//     void Update() {
+//         if (mLuaUpdate != null) {
+//             UnityEngine.Profiling.Profiler.BeginSample("LuaBehaviour.Update");
+//             mLuaUpdate(mLuaModule, mLuaObject);
+//             UnityEngine.Profiling.Profiler.EndSample();
+//         }
+//     }
+// 
+//     void FixedUpdate() {
+//         if (mLuaFixedUpdate != null) {
+//             UnityEngine.Profiling.Profiler.BeginSample("LuaBehaviour.FixedUpdate");
+//             mLuaFixedUpdate(mLuaModule, mLuaObject);
+//             UnityEngine.Profiling.Profiler.EndSample();
+//         }
+//     }
+// 
+//     void LateUpdate() {
+//         if (mLuaLateUpdate != null) {
+//             UnityEngine.Profiling.Profiler.BeginSample("LuaBehaviour.LateUpdate");
+//             mLuaLateUpdate(mLuaModule, mLuaObject);
+//             UnityEngine.Profiling.Profiler.EndSample();
+//         }
+//     }
+// 
+//     void OnDisable() {
+//         if (mLuaOnDisable != null) {
+//             mLuaOnDisable(mLuaModule, mLuaObject);
+//         }
+//     }
+// 
+//     void OnEnable() {
+//         if (mLuaOnEnable != null) {
+//             mLuaOnEnable(mLuaModule, mLuaObject);
+//         }
+//     }
+// 
+//     void OnDestroy() {
+//         if (mLuaOnDestroy != null) {
+//             mLuaOnDestroy(mLuaModule, mLuaObject);
+//         }
+//         if (mLuaObject != null) {
+//             mLuaObject.Dispose();
+//             mLuaObject = null;
+//         }
+//         mLuaModule = null;
+//         mLuaUpdate = null;
+//         mLuaOnDestroy = null;
+//         mLuaStart = null;
+//     }
+// 
+//     void OnGUI() {
+//         if (mLuaOnGUI != null) {
+//             mLuaOnGUI(mLuaModule, mLuaObject);
+//         }
+//     }
+// }
+// 
