@@ -1,0 +1,31 @@
+M = {}
+
+-- 按钮点击的方法
+local function onBtnOpenTaskClick(self)
+    print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+end
+
+--初始化面板  找到UI组件
+local function initView(self)
+    --寻找组件
+    print("333333333333333")
+    self.btnOpenTask = self.transform:Find("Bg/btnOpenTask"):GetComponent("Button")
+end
+
+function M.Start(self, obj)
+    self.transform = obj.transform
+    self.gameObject = obj.gameObject
+    initView(self)
+    print("444444444444444444")
+    local btnOpenTask = M.btnOpenTask
+    btnOpenTask.onClick:AddListener(function ()
+        onBtnOpenTaskClick(self)
+    end )
+end
+
+function M.Update()
+
+end
+
+
+return M
