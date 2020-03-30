@@ -1,6 +1,7 @@
 ﻿// Copyright (C) 2017 Joywinds Inc.
 
 using UnityEngine;
+using XLua;
 
 public class LuaBehaviour : MonoBehaviour {
     public delegate void MonoBehaviourEvent(XLua.LuaTable luaView, XLua.LuaTable b);
@@ -22,6 +23,10 @@ public class LuaBehaviour : MonoBehaviour {
             return mLuaModule;
         }
     }
+    
+    public void Close() {
+        Destroy(gameObject);
+    }
 
     public void SetLuaModule(XLua.LuaTable module) {
         mLuaModule = module;
@@ -37,6 +42,8 @@ public class LuaBehaviour : MonoBehaviour {
         mLuaObject = LuaMgr.Instance.Env.NewTable();
         mLuaObject.Set<string, GameObject>("gameObject", gameObject);
         mLuaObject.Set<string, Transform>("transform", transform);
+        mLuaObject.Set<string, LuaBehaviour>("view", this);
+        
     }
 
     public object[] Call(string funcName, params object[] args) {

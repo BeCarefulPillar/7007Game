@@ -3,6 +3,7 @@ M = {}
 -- 按钮点击的方法
 local function onBtnOpenTaskClick(self)
     print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+    self.view:Close()
 end
 
 --初始化面板  找到UI组件
@@ -13,6 +14,7 @@ local function initView(self)
 end
 
 function M.Start(self, obj)
+    self.view = obj.view
     self.transform = obj.transform
     self.gameObject = obj.gameObject
     initView(self)
