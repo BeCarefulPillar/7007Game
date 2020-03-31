@@ -1,0 +1,10 @@
+local M = {
+    HomeViewWidth  = 1920,
+    HomeViewHeight = 1080,
+
+    Views = {
+        mainView = {script = "View.mainView", prefab = "ViewPrefab/UIRootView"},
+    }
+}
+
+return M

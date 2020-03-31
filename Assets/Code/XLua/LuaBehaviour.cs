@@ -28,7 +28,7 @@ public class LuaBehaviour : MonoBehaviour {
         Destroy(gameObject);
     }
 
-    public void SetLuaModule(XLua.LuaTable module) {
+    public void SetLuaModule(LuaTable module, LuaTable data = null) {
         mLuaModule = module;
         mLuaStart = module.Get<string, MonoBehaviourEvent>("Start");
         mLuaUpdate = module.Get<string, MonoBehaviourEvent>("Update");
@@ -42,6 +42,7 @@ public class LuaBehaviour : MonoBehaviour {
         mLuaObject = LuaMgr.Instance.Env.NewTable();
         mLuaObject.Set<string, GameObject>("gameObject", gameObject);
         mLuaObject.Set<string, Transform>("transform", transform);
+        mLuaObject.Set<string, LuaTable>("data", data);
         mLuaObject.Set<string, LuaBehaviour>("view", this);
         
     }

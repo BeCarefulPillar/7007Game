@@ -2,6 +2,6 @@
 GAME_INIT = require "GameInit" 
 -- require 寻找到GameInit.lua脚本的引用
 --require "view"
-VIEW_MGR = require "ViewMgr" 
+VIEW_MGR = require "View.ViewMgr" 
 
 GAME_INIT:Init();

@@ -1,13 +1,12 @@
 --GameInit.Lua 脚本、初始化所有的View脚本
 
+local uidef =  require "View.Uidef"
 
 local M = {}
 
 --初始化方法 view 同时加载
 function M:Init()
-    --这里的方法就是负责把UI给克隆出来遇到方法时 使用 : 加上后面的方法
-    local mainView = require "Modules/View/mainView"
-    VIEW_MGR:LoadView("ViewPrefab/UIRootView", mainView)
+    VIEW_MGR:PushDown(uidef.Views.mainView, {aa = 10})
 end
 
 return M
