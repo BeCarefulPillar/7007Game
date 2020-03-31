@@ -6,6 +6,7 @@ public class LuaHelperManager {
     protected LuaHelperManager() {}
     private static GameObject mPopupParent = GameObject.Find("Canvas/Group_Popup");
     private static GameObject mHudParent = GameObject.Find("Canvas/Group_Hud");
+    private static GameObject mSceneParent = GameObject.Find("Scene");
     public static LuaHelperManager Instance {
         get {
             if(mInstance == null) {
@@ -15,6 +16,21 @@ public class LuaHelperManager {
         }
     }
 
+    public void LoadScene(string path, LuaTable model, LuaTable data = null, XLuaCustomExport.OnCreate onCreate = null) {
+        Debug.Log("加载UI窗口 =========== " + path);
+        GameObject obj = GameObject.Instantiate(Resources.Load<GameObject>(path), mPopupParent.transform);
+        if (obj != null) {
+            obj.AddComponent<LuaBehaviour>();
+        } else {
+            return;
+        }
+        if (onCreate != null) {
+            onCreate(obj);
+        }
+        var view = obj.GetComponent<LuaBehaviour>();
+        view.SetLuaModule(model, data);
+    }
+    
     /// <summary>
     /// Xlua层加载UI面板
     /// </summary>
@@ -35,7 +51,7 @@ public class LuaHelperManager {
         view.SetLuaModule(model, data);
     }
 
-    public void LoadHud(string path, LuaTable model, XLuaCustomExport.OnCreate onCreate = null) {
+    public void LoadHud(string path, LuaTable model, LuaTable data = null, XLuaCustomExport.OnCreate onCreate = null) {
         Debug.Log("加载UI窗口 =========== " + path);
         GameObject obj = GameObject.Instantiate(Resources.Load<GameObject>(path), mHudParent.transform);
         if (obj != null) {
@@ -47,7 +63,7 @@ public class LuaHelperManager {
             onCreate(obj);
         }
         var view = obj.GetComponent<LuaBehaviour>();
-        view.SetLuaModule(model);
+        view.SetLuaModule(model, data);
     }
 }
 
