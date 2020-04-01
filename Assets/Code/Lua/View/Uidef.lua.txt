@@ -1,9 +1,12 @@
 local M = {
     HomeViewWidth  = 1920,
     HomeViewHeight = 1080,
+    Scene = {
+        clark = {script = "View.Soldier.ClarkView", prefab = "Prefab/Soldier/Clark/Clark0"},
+    },
 
     Views = {
-        mainView = {script = "View.MainView", prefab = "ViewPrefab/UIRootView"},
+        mainView = {script = "View.Ui.MainView", prefab = "ViewPrefab/UIRootView"},
     }
 }
 

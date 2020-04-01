@@ -12,4 +12,11 @@ function ViewMgr:PushDown(view, data)
     return ViewMgr
 end
 
+function ViewMgr:PushScene(view, data)
+    local prefab = view.prefab
+    local model = CreateView(view.script)
+    CS.LuaHelperManager.Instance:LoadScene(prefab, model, data, func);
+    return ViewMgr
+end
+
 return ViewMgr

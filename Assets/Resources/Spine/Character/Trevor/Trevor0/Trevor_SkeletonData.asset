@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1b3b4b945939a54ea0b23d3396115fb, type: 3}
+  m_Name: Trevor_SkeletonData
+  m_EditorClassIdentifier: 
+  atlasAssets:
+  - {fileID: 11400000, guid: a5c1d1fe78308a84d88093286ec3b7cd, type: 2}
+  scale: 0.33
+  skeletonJSON: {fileID: 4900000, guid: e976c613f54646245bb2f197c1761c35, type: 3}
+  fromAnimation:
+  - Dead
+  - Run_Attack_Body
+  - Attack_Body
+  toAnimation:
+  - Keep_Dead
+  - Run
+  - Run
+  duration:
+  - 0
+  - 0
+  - 0
+  defaultMix: 0.2
+  controller: {fileID: 0}

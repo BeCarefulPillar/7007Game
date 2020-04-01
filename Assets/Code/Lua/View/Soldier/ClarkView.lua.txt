@@ -1,0 +1,17 @@
+
+M = {}
+-- 按钮点击的方法
+
+function M.Start(self, obj)
+    self.view = obj.view
+    self.transform = obj.transform
+    self.gameObject = obj.gameObject
+    self.hero = obj.data
+    self.transform.localScale = self.transform.localScale * 0.5
+end
+
+function M.Update(self)
+end
+
+
+return M

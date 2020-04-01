@@ -44,7 +44,6 @@ public class LuaBehaviour : MonoBehaviour {
         mLuaObject.Set<string, Transform>("transform", transform);
         mLuaObject.Set<string, LuaTable>("data", data);
         mLuaObject.Set<string, LuaBehaviour>("view", this);
-        
     }
 
     public object[] Call(string funcName, params object[] args) {
