@@ -1,0 +1,30 @@
+M = {}
+
+function M:SetName(name)
+    self.name = name
+end
+
+local function toClass(t)
+    t = t or {}
+    return M.makeObject({
+        id = t.id,
+        name = t.name or "",
+    })
+end
+
+function M.new(playerId)
+    local player = toClass()
+    player.id = playerId
+    return player
+end
+
+function M.newByTable(t)
+    local player = toClass(t)
+    return player
+end
+
+function M.makeObject(t)
+    return setmetatable(t, {__index=M})
+end
+
+return M

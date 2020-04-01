@@ -1,12 +1,14 @@
 --GameInit.Lua 脚本、初始化所有的View脚本
-
+local dataPlayer = require "Data.PlayerData"
 local uidef =  require "View.Uidef"
 
 local M = {}
 
 --初始化方法 view 同时加载
 function M:Init()
+    PLAYER_DATA = dataPlayer.new(1)
     VIEW_MGR:PushDown(uidef.Views.mainView, {aa = 10})
+    print(PLAYER_DATA.id)
 end
 
 return M

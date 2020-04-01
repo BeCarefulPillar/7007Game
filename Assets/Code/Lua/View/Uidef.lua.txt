@@ -3,7 +3,7 @@ local M = {
     HomeViewHeight = 1080,
 
     Views = {
-        mainView = {script = "View.mainView", prefab = "ViewPrefab/UIRootView"},
+        mainView = {script = "View.MainView", prefab = "ViewPrefab/UIRootView"},
     }
 }
 

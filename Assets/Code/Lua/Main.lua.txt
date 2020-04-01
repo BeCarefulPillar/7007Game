@@ -4,4 +4,6 @@ GAME_INIT = require "GameInit"
 --require "view"
 VIEW_MGR = require "View.ViewMgr" 
 
+PLAYER_DATA = {}
+
 GAME_INIT:Init();
