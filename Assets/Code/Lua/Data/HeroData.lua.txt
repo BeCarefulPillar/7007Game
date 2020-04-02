@@ -1,0 +1,30 @@
+M = {}
+
+local function toClass(t)
+    t = t or {}
+    return M.makeObject({
+        typeId = t.typeId,
+        name = t.name or "",
+        hp = t.hp or 1000,
+        atk = t.atk or 10,
+    })
+end
+
+function M.new(typeId)
+    local hero = toClass()
+    hero.typeId = 1
+    hero.name = "zh"
+
+    return hero
+end
+
+function M.newByTable(t)
+    local hero = toClass(t)
+    return hero
+end
+
+function M.makeObject(t)
+    return setmetatable(t, {__index=M})
+end
+
+return M

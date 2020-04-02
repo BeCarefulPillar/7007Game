@@ -19,4 +19,10 @@ function ViewMgr:PushScene(view, data)
     return ViewMgr
 end
 
+function ViewMgr:PushWorld(view)
+    local model = CreateView(view.script)
+    CS.LuaHelperManager.Instance:LoadWorld(model);
+    return ViewMgr
+end
+
 return ViewMgr

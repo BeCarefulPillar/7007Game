@@ -3,9 +3,8 @@ local uidef =  require "View.Uidef"
 M = {}
 -- 按钮点击的方法
 local function onBtnOpenTaskClick(self)
-    VIEW_MGR:PushScene(uidef.Scene.clark, PLAYER_DATA.hero[1])
-
-    --self.view:Close()
+    VIEW_MGR:PushWorld(uidef.World.world, PLAYER_DATA.hero[1])
+    self.view:Close()
 end
 
 --初始化面板  找到UI组件
@@ -25,7 +24,7 @@ function M.Start(self, obj)
 end
 
 function M.Update(self)
-    
+
 end
 
 

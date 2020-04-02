@@ -1,0 +1,10 @@
+local M = {}
+
+M.HeroRarity = {
+    Green = "Green",
+    Blue = "Blue",
+    Purple = "Purple",
+    Orange = "Orange",
+}
+
+return M

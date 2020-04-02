@@ -1,0 +1,19 @@
+local uidef =  require "View.Uidef"
+local battleHero =  require "World.BattleHeroData"
+M = {}
+
+function M.Start(self, obj)
+    self.view = obj.view
+    self.transform = obj.transform
+    self.gameObject = obj.gameObject
+
+    self.hero = battleHero.new(PLAYER_DATA.hero[1])
+    VIEW_MGR:PushScene(uidef.Scene.clark, self.hero)
+end
+
+function M.Update(self)
+    self.hero:update()
+end
+
+
+return M

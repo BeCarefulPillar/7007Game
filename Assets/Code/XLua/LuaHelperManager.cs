@@ -6,7 +6,7 @@ public class LuaHelperManager {
     protected LuaHelperManager() {}
     private static GameObject mPopupParent = GameObject.Find("Canvas/Group_Popup");
     private static GameObject mHudParent = GameObject.Find("Canvas/Group_Hud");
-    private static GameObject mSceneParent = GameObject.Find("HomeScene");
+    private static GameObject mSceneParent = GameObject.Find("HomeScene/ClientWorld");
     public static LuaHelperManager Instance {
         get {
             if(mInstance == null) {
@@ -14,6 +14,17 @@ public class LuaHelperManager {
             }
             return mInstance;
         }
+    }
+
+    public void LoadWorld(LuaTable model) {
+        GameObject obj = new GameObject ("World");
+        if (obj != null) {
+            obj.AddComponent<LuaBehaviour>();
+        } else {
+            return;
+        }
+        var view = obj.GetComponent<LuaBehaviour>();
+        view.SetLuaModule(model);
     }
 
     public void LoadScene(string path, LuaTable model, LuaTable data = null, XLuaCustomExport.OnCreate onCreate = null) {

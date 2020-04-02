@@ -1,6 +1,9 @@
 local M = {
     HomeViewWidth  = 1920,
     HomeViewHeight = 1080,
+    World = {
+        world = {script = "World.World"},
+    },
     Scene = {
         clark = {script = "View.Soldier.ClarkView", prefab = "Prefab/Soldier/Clark/Clark0"},
     },

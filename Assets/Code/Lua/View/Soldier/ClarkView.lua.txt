@@ -1,4 +1,3 @@
-
 M = {}
 -- 按钮点击的方法
 
@@ -7,13 +6,10 @@ function M.Start(self, obj)
     self.transform = obj.transform
     self.gameObject = obj.gameObject
     self.hero = obj.data
-    self.transform.localScale = self.transform.localScale * 0.5
-    self.mainCamera = CS.UnityEngine.GameObject.FindWithTag("MainCamera"):GetComponent("Camera")
 end
 
 function M.Update(self)
-    self.mainCamera.transform.localPosition = self.mainCamera.transform.localPosition + CS.UnityEngine.Vector3(0.1,0,0)
-end
 
+end
 
 return M

@@ -1,4 +1,6 @@
-M = {}
+local hero = require "Data.HeroData"
+
+local M = {}
 
 function M:SetName(name)
     self.name = name
@@ -9,7 +11,7 @@ local function toClass(t)
     return M.makeObject({
         id = t.id,
         name = t.name or "",
-        hero = t.hero or {}
+        hero = t.hero or {},
     })
 end
 
@@ -17,8 +19,8 @@ function M.new(playerId)
     local player = toClass()
     player.id = playerId
     player.name = "xxx"
-    table.insert(player.hero,{name = "zz", hp = 1000, atk = 1000})
-    table.insert(player.hero,{name = "bb", hp = 8888, atk = 500})
+    table.insert(player.hero, hero.new(1))
+    table.insert(player.hero, hero.new(2))
     return player
 end
 
