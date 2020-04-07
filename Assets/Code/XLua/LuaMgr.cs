@@ -172,7 +172,9 @@ public class LuaMgr : MonoBehaviour {
 
     private void Update() {
         if (Time.time - m_lastGCTime > GC_INTERVAL) {
-            Env.Tick();
+            if(Env != null) {
+                Env.Tick();
+            }
             m_lastGCTime = Time.time;
         }
     }

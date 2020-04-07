@@ -6,4 +6,4 @@ VIEW_MGR = require "View.ViewMgr"
 
 PLAYER_DATA = {}
 
-GAME_INIT:Init();
+GAME_INIT:Init()

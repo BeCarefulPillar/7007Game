@@ -5,7 +5,7 @@ local M = {
         world = {script = "World.World"},
     },
     Scene = {
-        clark = {script = "View.Soldier.ClarkView", prefab = "Prefab/Soldier/Clark/Clark0"},
+        clark = {script = "View.Soldier.HeroView", prefab = "Prefab/Soldier/Clark/Clark0"},
     },
 
     Views = {

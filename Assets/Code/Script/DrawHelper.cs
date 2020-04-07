@@ -1,0 +1,29 @@
+﻿
+using UnityEngine;
+
+public static class DrawHelper {
+    public static void DrawRect(Rect rect, float z = 0) {
+        Vector3[] line = new Vector3[5];
+
+        line[0] = new Vector3(rect.x, rect.y, z);
+
+        line[1] = new Vector3(rect.x + rect.width, rect.y, z);
+
+        line[2] = new Vector3(rect.x + rect.width, rect.y + rect.height, z);
+
+        line[3] = new Vector3(rect.x, rect.y + rect.height, z);
+
+        line[4] = new Vector3(rect.x, rect.y, z);
+
+        if (line != null && line.Length > 0) {
+            DrawLineHelper(line, Color.red);
+        }
+
+    }
+
+    public static void DrawLineHelper(Vector3[] line, Color color) {
+        for (var i = 0; i < line.Length - 1; i++) {
+            Debug.DrawLine(line[i], line[i + 1], color);
+        }
+    }
+}

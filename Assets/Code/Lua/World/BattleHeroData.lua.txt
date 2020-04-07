@@ -2,10 +2,16 @@
 local M = {}
 
 function M:update()
+    local h = CS.UnityEngine.Input.GetAxis("Horizontal")
+    if h > 0 then
+        self.dir = 1
+    elseif h < 0 then
+        self.dir = -1
+    end
+    self.pos[1] = self.pos[1] + CS.UnityEngine.Time.deltaTime * self.speed * self.dir * math.abs(h)
+end
 
-
-    print("111111111111111")
-
+function M:lateUpdate()
 
 end
 
@@ -16,7 +22,10 @@ local function toClass(t)
         name = t.name or "",
         hp = t.hp or 1000,
         atk = t.atk or 10,
-        size = t.size or {5,5}
+        size = t.size or {24,37},  --目前是meshrender大小 之后这个里面的数据全部写到表中
+        pos = t.pos or {0,0},
+        speed = 10,
+        dir = 1,
     })
 end
 

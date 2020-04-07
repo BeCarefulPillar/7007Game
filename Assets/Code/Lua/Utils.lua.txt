@@ -37,4 +37,18 @@ function M.Printtb(t)
     print(table.concat(output, "\n"))
 end
 
+function M.playSpineAnim(spineAnim, name, loop)
+    if name == spineAnim.AnimationName then
+        return
+    end
+    loop = loop or false
+    spineAnim.skeleton:SetToSetupPose()
+    spineAnim.state:ClearTracks()
+    spineAnim.state:SetAnimation(0, name, loop)
+end
+
+function M.flipSpineAnim(spineAnim,flip)
+    spineAnim.skeleton.FlipX = flip
+end
+
 return M

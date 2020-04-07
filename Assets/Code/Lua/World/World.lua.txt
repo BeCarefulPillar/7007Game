@@ -15,5 +15,9 @@ function M.Update(self)
     self.hero:update()
 end
 
+function M.LateUpdate(self)
+    self.hero:lateUpdate()
+end
+
 
 return M

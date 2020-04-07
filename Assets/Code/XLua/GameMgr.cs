@@ -4,11 +4,7 @@ using UnityEngine;
 using XLua;
 
 public class GameMgr : MonoBehaviour {
-
-    private void Awake() {
-        gameObject.AddComponent<LuaMgr>();
-    }
-
+    
     // Use this for initialization
     void Start () {
         LuaMgr.Init();
