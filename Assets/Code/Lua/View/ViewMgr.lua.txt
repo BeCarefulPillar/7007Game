@@ -25,4 +25,11 @@ function ViewMgr:PushWorld(view)
     return model
 end
 
+function ViewMgr:PushHero(view, data)
+    local prefab = view.prefab
+    local model = CreateView(view.script)
+    CS.LuaHelperManager.Instance:LoadHero(prefab, model, data, func);
+    return model
+end
+
 return ViewMgr

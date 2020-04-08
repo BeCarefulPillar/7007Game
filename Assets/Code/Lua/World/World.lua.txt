@@ -1,22 +1,40 @@
 local uidef =  require "View.Uidef"
 local battleHero =  require "World.BattleHeroData"
+local platform =  require "World.PlatformData"
 M = {}
 
 function M.Start(self, obj)
+    self.heroList = {}
+    self.platformList = {}
+
     self.view = obj.view
     self.transform = obj.transform
     self.gameObject = obj.gameObject
+    self.deltaTime = CS.UnityEngine.Time.deltaTime
 
-    self.hero = battleHero.new(PLAYER_DATA.hero[1])
-    VIEW_MGR:PushScene(uidef.Scene.clark, self.hero)
+    local hero = battleHero.new(PLAYER_DATA.hero[1])
+    VIEW_MGR:PushHero(uidef.Scene.clark, hero)
+    table.insert(self.heroList, hero)
+
+    local p = platform.new()
+    VIEW_MGR:PushScene(uidef.Scene.platform, p)
+    table.insert(self.platformList, p)
+
 end
 
 function M.Update(self)
-    self.hero:update()
+    for _,v in ipairs(self.heroList) do
+        v:update(self.deltaTime)
+    end
+    for _,v in ipairs(self.platformList) do
+        v:update(self.deltaTime)
+    end
 end
 
 function M.LateUpdate(self)
-    self.hero:lateUpdate()
+    for _,v in ipairs(self.heroList) do
+        v:lateUpdate(self.deltaTime)
+    end
 end
 
 

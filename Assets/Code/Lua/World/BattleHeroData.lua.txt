@@ -1,15 +1,15 @@
 
 local M = {}
 
-function M:update()
+function M:update(deltaTime)
     local h = CS.UnityEngine.Input.GetAxis("Horizontal")
     if h > 0 then
         self.dir = 1
     elseif h < 0 then
         self.dir = -1
     end
-    self.pos[1] = self.pos[1] + CS.UnityEngine.Time.deltaTime * self.speed * self.dir * math.abs(h)
-end
+    self.pos[1] = self.pos[1] + deltaTime * self.speed * self.dir * math.abs(h)
+end  
 
 function M:lateUpdate()
 

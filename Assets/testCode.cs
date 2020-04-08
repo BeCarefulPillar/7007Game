@@ -15,7 +15,7 @@ public class testCode : MonoBehaviour {
                 Debug.Log(mesh.bounds.size);
             }
         }
-
+        
         
     }
     

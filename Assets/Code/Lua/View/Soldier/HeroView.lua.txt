@@ -2,11 +2,16 @@ local Utils = require "Utils"
 M = {}
 
 local function init(self)
-    local go = self.gameObject:AddComponent(typeof(CS.DrawHeroAABB))
-    go.size = CS.UnityEngine.Vector3(self.hero.size[1], self.hero.size[2])
+    if Debug then
+        local go = self.gameObject:AddComponent(typeof(CS.DrawHeroAABB))
+        go.size = CS.UnityEngine.Vector3(self.hero.size[1], self.hero.size[2])
+    end
     self.transform.position = CS.UnityEngine.Vector3(self.hero.pos[1], self.hero.pos[2], self.transform.position.z)
     self.lastPos = self.transform.position
-    self.isRight = self.hero.dir > 0
+
+    --
+
+    --
 
 end
 
@@ -15,6 +20,8 @@ function M.Start(self, obj)
     self.transform = obj.transform
     self.gameObject = obj.gameObject
     self.hero = obj.data
+    self.mainCamera = CS.UnityEngine.Camera.main.transform
+
     self.spineAnim = self.transform:Find("Animation/body"):GetComponent("SkeletonAnimation")
     Utils.playSpineAnim(self.spineAnim, "Idle", true)
     init(self)
@@ -33,6 +40,8 @@ function M.LateUpdate(self)
         Utils.playSpineAnim(self.spineAnim, "Idle", true)
     end
     Utils.flipSpineAnim(self.spineAnim, self.hero.dir < 0)
+
+    self.mainCamera.position = CS.UnityEngine.Vector3(self.hero.pos[1], self.hero.pos[2], self.mainCamera.position.z)
 
 end
 

@@ -1,0 +1,29 @@
+local Utils = require "Utils"
+M = {}
+
+local function init(self)
+    if Debug then
+        local go = self.gameObject:AddComponent(typeof(CS.DrawHeroAABB))
+        go.size = CS.UnityEngine.Vector3(self.platform.size[1], self.platform.size[2])
+    end
+    
+    self.transform.position = CS.UnityEngine.Vector3(self.platform.pos[1], self.platform.pos[2], self.transform.position.z)
+end
+
+function M.Start(self, obj)
+    self.view = obj.view
+    self.transform = obj.transform
+    self.gameObject = obj.gameObject
+    self.platform = obj.data
+    init(self)
+end
+
+function M.Update(self)
+
+end
+
+function M.LateUpdate(self)
+
+end
+
+return M
