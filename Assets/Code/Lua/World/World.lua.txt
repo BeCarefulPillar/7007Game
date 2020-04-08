@@ -1,6 +1,7 @@
 local uidef =  require "View.Uidef"
 local battleHero =  require "World.BattleHeroData"
 local platform =  require "World.PlatformData"
+local physic = require "System.physicSystem"
 M = {}
 
 function M.Start(self, obj)
@@ -12,14 +13,17 @@ function M.Start(self, obj)
     self.gameObject = obj.gameObject
     self.deltaTime = CS.UnityEngine.Time.deltaTime
 
+    self.physic = physic.new()
+
     local hero = battleHero.new(PLAYER_DATA.hero[1])
     VIEW_MGR:PushHero(uidef.Scene.clark, hero)
     table.insert(self.heroList, hero)
+    self.physic:addplatformList(hero)
 
     local p = platform.new()
     VIEW_MGR:PushScene(uidef.Scene.platform, p)
     table.insert(self.platformList, p)
-
+    self.physic:addplatformList(p)
 end
 
 function M.Update(self)

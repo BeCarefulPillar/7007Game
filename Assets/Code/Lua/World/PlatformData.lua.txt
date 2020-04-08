@@ -11,14 +11,21 @@ end
 
 local function toClass(t)
     t = t or {}
-    return M.makeObject({
+    local platform = {
         size = t.size or {6,5},  --目前是meshrender大小 之后这个里面的数据全部写到表中
         pos = t.pos or {8,-5},
-    })
+    }
+    platform.rect = {   platform.pos[1] - platform.size[1],
+                        platform.pos[2] - platform.size[2],
+                        platform.size[1], 
+                        platform.size[2],}
+
+    return M.makeObject(platform)
 end
 
 function M.new()
-    return toClass()
+    local platform = toClass()
+    return platform
 end
 
 function M.makeObject(t)

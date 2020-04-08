@@ -2,6 +2,7 @@
 local M = {}
 
 function M:update(deltaTime)
+    self.time = self.time + deltaTime
     local h = CS.UnityEngine.Input.GetAxis("Horizontal")
     if h > 0 then
         self.dir = 1
@@ -9,6 +10,11 @@ function M:update(deltaTime)
         self.dir = -1
     end
     self.pos[1] = self.pos[1] + deltaTime * self.speed * self.dir * math.abs(h)
+    self.pos[2] = self.pos[2] - (9.8 * self.time) * deltaTime
+    self.rect = {   self.pos[1] - self.size[1],
+                    self.pos[2] - self.size[2],
+                    self.size[1], 
+                    self.size[2],}
 end  
 
 function M:lateUpdate()
@@ -17,16 +23,23 @@ end
 
 local function toClass(t)
     t = t or {}
-    return M.makeObject({
+    local hero = {
         typeId = t.typeId,
         name = t.name or "",
-        hp = t.hp or 1000,
-        atk = t.atk or 10,
-        size = t.size or {24,37},  --目前是meshrender大小 之后这个里面的数据全部写到表中
-        pos = t.pos or {0,0},
+        hp = 1000,
+        atk = 10,
+        size = {24,37},  --目前是meshrender大小 之后这个里面的数据全部写到表中
+        pos = {0,0},
         speed = 10,
         dir = 1,
-    })
+        time = 0,
+    }
+    hero.rect = {   hero.pos[1] - hero.size[1],
+                    hero.pos[2] - hero.size[2],
+                    hero.size[1], 
+                    hero.size[2],}
+
+    return M.makeObject(hero)
 end
 
 function M.new(hero)

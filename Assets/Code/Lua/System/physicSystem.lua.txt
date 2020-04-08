@@ -1,0 +1,34 @@
+M = {}
+
+function M:AABB(rect,data)
+    for _.v in ipairs() do
+        if data ~= v.rect then
+            if false then
+                return v
+            end 
+        end
+    end
+end
+
+function M:addplatformList(data)
+    table.insert(self.platformRectList, data)
+end
+
+local function toClass(t)
+    t = t or {}
+    return M.makeObject({
+        platformRectList = {},
+    })
+end
+
+function M.new()
+    local physic = toClass()
+    return physic
+end
+
+
+function M.makeObject(t)
+    return setmetatable(t, {__index=M})
+end
+
+return M
