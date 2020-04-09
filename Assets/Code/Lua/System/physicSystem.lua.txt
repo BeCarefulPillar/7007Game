@@ -1,14 +1,14 @@
-M = {}
+local M = {}
 
-function M:AABB(rect,data)
-    for _.v in ipairs() do
+function M:AABB(rect, data)
+    for _, v in ipairs(self.platformRectList) do
         if data ~= v.rect then
             if false then
                 return v
             end 
         end
     end
-end
+end 
 
 function M:addplatformList(data)
     table.insert(self.platformRectList, data)
@@ -30,5 +30,6 @@ end
 function M.makeObject(t)
     return setmetatable(t, {__index=M})
 end
+
 
 return M

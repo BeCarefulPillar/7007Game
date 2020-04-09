@@ -22,8 +22,9 @@ public static class DrawHelper {
     }
 
     public static void DrawLineHelper(Vector3[] line, Color color) {
+        Gizmos.color = color;
         for (var i = 0; i < line.Length - 1; i++) {
-            Debug.DrawLine(line[i], line[i + 1], color);
+            Gizmos.DrawLine(line[i], line[i + 1]);
         }
     }
 }

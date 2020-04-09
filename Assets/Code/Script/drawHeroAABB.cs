@@ -19,7 +19,7 @@ public class DrawHeroAABB: MonoBehaviour{
         }
     }
 
-    void LateUpdate() {
+    void OnDrawGizmos() {
         if (mesh != null) {
             DrawHelper.DrawRect(new Rect(transform.position - size/2.0f , size), transform.parent.position.z);
         }

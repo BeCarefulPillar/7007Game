@@ -2,7 +2,8 @@ local uidef =  require "View.Uidef"
 local battleHero =  require "World.BattleHeroData"
 local platform =  require "World.PlatformData"
 local physic = require "System.physicSystem"
-M = {}
+
+local M = {}
 
 function M.Start(self, obj)
     self.heroList = {}
