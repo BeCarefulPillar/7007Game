@@ -2,7 +2,6 @@ M = {}
 
 function M:update(deltaTime)
 
-
 end
 
 local function toClass(t)

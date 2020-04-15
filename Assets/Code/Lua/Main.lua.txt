@@ -7,4 +7,6 @@ VIEW_MGR = require "View.ViewMgr"
 
 PLAYER_DATA = {}
 
+WORLD_DATA = {}
+
 GAME_INIT:Init()

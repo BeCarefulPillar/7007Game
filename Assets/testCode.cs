@@ -21,7 +21,7 @@ public class testCode : MonoBehaviour {
     
     void LateUpdate() {
         if (mesh != null) {
-            DrawHelper.DrawRect(new Rect(heroObj.transform.position - mesh.bounds.size/2, mesh.bounds.size), transform.parent.position.z);
+            DrawHelper.DrawRect(new Rect(heroObj.transform.position - mesh.bounds.size/2, mesh.bounds.size), transform.parent.position.z,  Color.red);
         }
 
         var h = Input.GetAxis("Horizontal");

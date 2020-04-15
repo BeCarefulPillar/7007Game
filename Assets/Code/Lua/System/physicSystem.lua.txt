@@ -1,13 +1,36 @@
+
 local M = {}
 
-function M:AABB(rect, data)
+function M:IsAABBCollide(AABB1, AABB2)
+    local aabb1 = {}
+    aabb1._min = {}
+    aabb1._max = {}
+    aabb1._min.x = AABB1.rect[1]
+    aabb1._min.y = AABB1.rect[2]
+    aabb1._max.x = AABB1.rect[3] + AABB1.rect[1]
+    aabb1._max.y = AABB1.rect[4] + AABB1.rect[2]
+
+    local aabb2 = {}
+    aabb2._min = {}
+    aabb2._max = {}
+    aabb2._min.x = AABB2.rect[1]
+    aabb2._min.y = AABB2.rect[2]
+    aabb2._max.x = AABB2.rect[3] + AABB2.rect[1]
+    aabb2._max.y = AABB2.rect[4] + AABB2.rect[2]
+
+    return ((aabb1._min.x >= aabb2._min.x and aabb1._min.x <= aabb2._max.x) or (aabb2._min.x >= aabb1._min.x and aabb2._min.x <= aabb1._max.x)) and
+           ((aabb1._min.y >= aabb2._min.y and aabb1._min.y <= aabb2._max.y) or (aabb2._min.y >= aabb1._min.y and aabb2._min.y <= aabb1._max.y))
+end
+
+function M:AABB(data)
     for _, v in ipairs(self.platformRectList) do
-        if data ~= v.rect then
-            if false then
-                return v
+        if data ~= v then
+            if self:IsAABBCollide(data, v) then
+                return true
             end 
         end
     end
+    return false
 end 
 
 function M:addplatformList(data)

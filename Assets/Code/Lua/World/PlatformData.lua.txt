@@ -2,7 +2,8 @@
 local M = {}
 
 function M:update(deltaTime)
-
+    local isCollide = WORLD_DATA.physic:AABB(self)
+    self.isCollide = isCollide
 end  
 
 function M:lateUpdate()
@@ -14,9 +15,10 @@ local function toClass(t)
     local platform = {
         size = t.size or {6,5},  --目前是meshrender大小 之后这个里面的数据全部写到表中
         pos = t.pos or {8,-5},
+        isCollide = false,
     }
-    platform.rect = {   platform.pos[1] - platform.size[1],
-                        platform.pos[2] - platform.size[2],
+    platform.rect = {   platform.pos[1] - platform.size[1] / 2,
+                        platform.pos[2] - platform.size[2] / 2,
                         platform.size[1], 
                         platform.size[2],}
 

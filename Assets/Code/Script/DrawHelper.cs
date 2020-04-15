@@ -2,7 +2,7 @@
 using UnityEngine;
 
 public static class DrawHelper {
-    public static void DrawRect(Rect rect, float z = 0) {
+    public static void DrawRect(Rect rect, float z, Color color) {
         Vector3[] line = new Vector3[5];
 
         line[0] = new Vector3(rect.x, rect.y, z);
@@ -16,7 +16,7 @@ public static class DrawHelper {
         line[4] = new Vector3(rect.x, rect.y, z);
 
         if (line != null && line.Length > 0) {
-            DrawLineHelper(line, Color.red);
+            DrawLineHelper(line, color);
         }
 
     }

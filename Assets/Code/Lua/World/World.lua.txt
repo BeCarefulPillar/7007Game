@@ -1,7 +1,7 @@
 local uidef =  require "View.Uidef"
 local battleHero =  require "World.BattleHeroData"
 local platform =  require "World.PlatformData"
-local physic = require "System.physicSystem"
+local physic = require "System.PhysicSystem"
 
 local M = {}
 
@@ -17,7 +17,7 @@ function M.Start(self, obj)
     self.physic = physic.new()
 
     local hero = battleHero.new(PLAYER_DATA.hero[1])
-    VIEW_MGR:PushHero(uidef.Scene.clark, hero)
+    VIEW_MGR:PushHero(uidef.Scene.testHero, hero)
     table.insert(self.heroList, hero)
     self.physic:addplatformList(hero)
 
@@ -25,6 +25,8 @@ function M.Start(self, obj)
     VIEW_MGR:PushScene(uidef.Scene.platform, p)
     table.insert(self.platformList, p)
     self.physic:addplatformList(p)
+
+    WORLD_DATA = self
 end
 
 function M.Update(self)
