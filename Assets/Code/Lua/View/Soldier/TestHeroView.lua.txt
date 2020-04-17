@@ -8,7 +8,7 @@ local function init(self)
     end
     self.transform.position = CS.UnityEngine.Vector3(self.hero.pos[1], self.hero.pos[2], self.transform.position.z)
     self.lastPos = self.transform.position
-    
+    self.lastCollide = self.hero.isCollide
 end
 
 function M.Start(self, obj)
@@ -22,12 +22,16 @@ function M.Start(self, obj)
 end
 
 function M.Update(self)
-    if Debug then
-        self.go:SetCollideColor(self.hero.isCollide)
-    end
+
 end
 
 function M.LateUpdate(self)
+    if Debug then
+        if self.lastCollide ~= self.hero.isCollide then
+            self.go:SetCollideColor(self.hero.isCollide)
+            self.lastCollide = self.hero.isCollide
+        end
+    end
     self.transform.position = CS.UnityEngine.Vector3(self.hero.pos[1], self.hero.pos[2], self.transform.position.z)
     self.mainCamera.position = CS.UnityEngine.Vector3(self.hero.pos[1], self.hero.pos[2], self.mainCamera.position.z)
 end

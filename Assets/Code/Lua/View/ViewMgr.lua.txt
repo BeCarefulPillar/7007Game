@@ -5,6 +5,13 @@ local function CreateView(viewName)
     return require(viewName)
 end
 
+function ViewMgr:PushHud(view, data)
+    local prefab = view.prefab
+    local model = CreateView(view.script)
+    CS.LuaHelperManager.Instance:LoadHud(prefab, model, data, func);
+    return model
+end
+
 function ViewMgr:PushDown(view, data)
     local prefab = view.prefab
     local model = CreateView(view.script)

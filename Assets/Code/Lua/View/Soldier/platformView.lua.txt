@@ -8,6 +8,7 @@ local function init(self)
     end
     
     self.transform.position = CS.UnityEngine.Vector3(self.platform.pos[1], self.platform.pos[2], self.transform.position.z)
+    self.lastCollide = self.platform.isCollide
 end
 
 function M.Start(self, obj)
@@ -19,13 +20,15 @@ function M.Start(self, obj)
 end
 
 function M.Update(self)
-    if Debug then
-        self.go:SetCollideColor(self.platform.isCollide)
-    end
 end
 
 function M.LateUpdate(self)
-
+    if Debug then
+        if self.lastCollide ~= self.platform.isCollide then
+            self.go:SetCollideColor(self.platform.isCollide)
+            self.lastCollide = self.platform.isCollide
+        end
+    end 
 end
 
 return M

@@ -1,0 +1,36 @@
+local Utils = require "Utils"
+local uidef =  require "View.Uidef" 
+M = {}
+
+local function init(self)
+    if Debug then
+        self.go = self.gameObject:AddComponent(typeof(CS.DrawHeroAABB))
+        self.go.size = CS.UnityEngine.Vector3(WORLD_DATA.size[1], WORLD_DATA.size[2])
+    end
+    self.transform.position = CS.UnityEngine.Vector3(WORLD_DATA.pos[1], WORLD_DATA.pos[2], self.transform.position.z)
+
+    for _,v in ipairs(WORLD_DATA.heroList) do
+        VIEW_MGR:PushHero(uidef.Scene.testHero, v)
+    end
+
+    for _,v in ipairs(WORLD_DATA.platformList) do
+        VIEW_MGR:PushScene(uidef.Scene.platform, v)
+    end
+end
+
+function M.Start(self, obj)    
+    self.view = obj.view
+    self.transform = obj.transform
+    self.gameObject = obj.gameObject
+    init(self)
+end
+
+function M.Update(self)
+
+end
+
+function M.LateUpdate(self)
+
+end
+
+return M

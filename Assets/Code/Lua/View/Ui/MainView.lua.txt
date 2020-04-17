@@ -3,7 +3,8 @@ local uidef =  require "View.Uidef"
 M = {}
 -- 按钮点击的方法
 local function onBtnOpenTaskClick(self)
-    VIEW_MGR:PushWorld(uidef.World.world, PLAYER_DATA.hero[1])
+    VIEW_MGR:PushWorld(uidef.World.world) -- 数据的world
+    VIEW_MGR:PushScene(uidef.Scene.world) -- 数据的viewworld
     self.view:Close()
 end
 

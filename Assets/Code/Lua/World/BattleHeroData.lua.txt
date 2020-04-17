@@ -28,7 +28,14 @@ function M:update(deltaTime)
                     self.size[2],}
 
     local isCollide = WORLD_DATA.physic:AABB(self)
-    self.isCollide = isCollide
+    local isBorder = WORLD_DATA.physic:border(self)
+
+    if isCollide or isBorder then
+        self.isCollide = true
+    else
+        self.isCollide = false
+    end
+
 end  
 
 function M:lateUpdate()
@@ -49,8 +56,8 @@ local function toClass(t)
         time = 0,
         isCollide = false,
     }
-    hero.rect = {   hero.pos[1] - hero.size[1],
-                    hero.pos[2] - hero.size[2],
+    hero.rect = {   hero.pos[1] - hero.size[1] / 2,
+                    hero.pos[2] - hero.size[2] / 2,
                     hero.size[1], 
                     hero.size[2],}
 

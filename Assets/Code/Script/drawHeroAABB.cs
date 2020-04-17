@@ -1,11 +1,10 @@
-﻿
-using UnityEngine;
+﻿using UnityEngine;
 
 public class DrawHeroAABB: MonoBehaviour{
     public Vector3 size = new Vector3(5,5,0);
     public Color color = Color.red;
+
     private void Start() {
-        
     }
 
     void OnDrawGizmos() {
@@ -19,4 +18,9 @@ public class DrawHeroAABB: MonoBehaviour{
             color = Color.red;
         }
     }
+
+    private void Update() {
+
+    }
+
 }
