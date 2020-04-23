@@ -45,5 +45,4 @@ function M.LateUpdate(self)
     end
 end
 
-
 return M

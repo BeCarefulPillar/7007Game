@@ -8,7 +8,6 @@ local M = {}
 function M:Init()
     PLAYER_DATA = dataPlayer.new(1)
     VIEW_MGR:PushDown(uidef.Views.mainView, {aa = 10})
-    print(PLAYER_DATA.id)
 end
 
 return M

@@ -14,7 +14,7 @@ public class DrawHud : MonoBehaviour {
         GameObject hud = GameObject.Instantiate(new GameObject(), obj.transform);
         txt = hud.AddComponent<Text>();
         txt.text = "22222222222";
-        txt.font = font;
+        txt.font = font;                  
     }
 
     private void LateUpdate() {
