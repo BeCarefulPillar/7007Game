@@ -42,21 +42,40 @@ int main()
     int nAddrLen = sizeof(sockaddr_in);
     SOCKET _cSock = INVALID_SOCKET; //无效socket
 
-    char msgBuff[] = "Hello, server";
-    while (true) {
-        _cSock = accept(_sock, (sockaddr*)&clientAddr, &nAddrLen);
-        if (INVALID_SOCKET == _cSock) {
-            printf("error, client invalid socket \n");
-        }
+    _cSock = accept(_sock, (sockaddr*)&clientAddr, &nAddrLen);
+    if (INVALID_SOCKET == _cSock) {
+        printf("error, client invalid socket \n");
+    }
+    printf("new client add: _cSock = %d, ip = %s \n", (int)_cSock, inet_ntoa(clientAddr.sin_addr));
 
-        printf("new client add: ip = %s \n", inet_ntoa(clientAddr.sin_addr));
-        //-send-
-        send(_cSock, msgBuff, strlen(msgBuff) + 1, 0);
+    char _recvBuf[128] = {};
+
+    while (true) {
+        //recv client data
+        int nLen = recv(_cSock, _recvBuf, 128,0);
+
+        if (nLen <= 0) {
+            printf("client exist out \n");
+        } else {
+            printf("recv msg %s \n", _recvBuf);
+        }
+        if (0 == strcmp(_recvBuf, "getName")) {
+            char msgBuff[] = "Xiao Qiang";
+            send(_cSock, msgBuff, strlen(msgBuff) + 1, 0);
+        } else if (0 == strcmp(_recvBuf, "geteAge")) {
+            char msgBuff[] = "17";
+            send(_cSock, msgBuff, strlen(msgBuff) + 1, 0);
+        } else {
+            char msgBuff[] = "???";
+            send(_cSock, msgBuff, strlen(msgBuff) + 1, 0);
+        }
     }
     
     //-close-
     closesocket(_sock);
     //---------------------------
     WSACleanup();
+
+    printf("server exist out\n");
     return 0;
 }

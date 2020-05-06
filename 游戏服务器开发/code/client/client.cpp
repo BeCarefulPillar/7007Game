@@ -13,14 +13,14 @@ int main() {
     WSADATA data;
     WSAStartup(ver, &data);
     //---------------------------
-    //-socket
+    //1 socket
     SOCKET _sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); //ipv4, 流数据, tcp
     if (INVALID_SOCKET == _sock) {
         printf("socket error \n");
     } else {
         printf("socket success \n");
     }
-    //-connect
+    //2 connect
     sockaddr_in _sin = {};
     _sin.sin_family = AF_INET;
     _sin.sin_port = htons(4567);
@@ -30,16 +30,30 @@ int main() {
     } else {
         printf("connect error \n");
     }
-    // - recv
-    char recvBuf[256] = {};
-    int nlen = recv(_sock, recvBuf, 256, 0);
-    if (nlen > 0) {
-        printf("recv data %s \n", recvBuf);
+    while (true) {
+        char cmdBuf[128] = {};
+        scanf_s("%s", cmdBuf, 128);
+        //4 deal req
+        if (0 == strcmp(cmdBuf, "exit")) {
+            break;
+        } else {
+            //5 send
+            send(_sock, cmdBuf, strlen(cmdBuf) + 1, 0);
+        }
+        //6 recv
+        char recvBuf[256] = {};
+        int nlen = recv(_sock, recvBuf, 256, 0);
+        if (nlen > 0) {
+            printf("recv data %s \n", recvBuf);
+        }
     }
-    //-close-
+
+    
+    //7close-
     closesocket(_sock);
     //---------------------------
     WSACleanup();
+    printf("client exist out");
     getchar();
     return 0;
 }
