@@ -8,6 +8,11 @@
 //静态链接库 win平台
 //#pragma comment(lib, "ws2_32.lib")
 
+struct DataPackage {
+    int age;
+    char name[32];
+};
+
 int main() {
     WORD ver = MAKEWORD(2, 2); //socket版本 2.x环境
     WSADATA data;
@@ -44,7 +49,8 @@ int main() {
         char recvBuf[256] = {};
         int nlen = recv(_sock, recvBuf, 256, 0);
         if (nlen > 0) {
-            printf("recv data %s \n", recvBuf);
+            DataPackage *dp = (DataPackage *)recvBuf;
+            printf("recv data age = %d , name = %s \n", dp->age, dp->name);
         }
     }
 

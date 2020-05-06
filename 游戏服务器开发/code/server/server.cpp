@@ -8,6 +8,11 @@
 //静态链接库 win平台
 //#pragma comment(lib, "ws2_32.lib")
 
+struct DataPackage {
+    int age;
+    char name[32];
+};
+
 int main()
 {
     WORD ver = MAKEWORD(2, 2); //socket版本 2.x环境
@@ -59,12 +64,9 @@ int main()
         } else {
             printf("recv msg %s \n", _recvBuf);
         }
-        if (0 == strcmp(_recvBuf, "getName")) {
-            char msgBuff[] = "Xiao Qiang";
-            send(_cSock, msgBuff, strlen(msgBuff) + 1, 0);
-        } else if (0 == strcmp(_recvBuf, "geteAge")) {
-            char msgBuff[] = "17";
-            send(_cSock, msgBuff, strlen(msgBuff) + 1, 0);
+        if (0 == strcmp(_recvBuf, "getInfo")) {
+            DataPackage dp = { 18, "乐乐" };
+            send(_cSock, (const char *)&dp, sizeof(dp), 0);
         } else {
             char msgBuff[] = "???";
             send(_cSock, msgBuff, strlen(msgBuff) + 1, 0);
