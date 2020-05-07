@@ -14,6 +14,7 @@ enum CMD {
     CMD_LOGIN_RESULT,
     CMD_LOGOUT,
     CMD_LOGOUT_RESULT,
+    CMD_NEW_CLIENT_JOIN,
 };
 
 struct dataHeader {
@@ -57,6 +58,14 @@ struct logoutResult : public dataHeader {
     int result;
 };
 
+struct newClientJoin : public dataHeader {
+    newClientJoin() {
+        cmd = CMD_NEW_CLIENT_JOIN;
+        dataLen = sizeof(logoutResult);
+    };
+    int sock;
+};
+
 int process(SOCKET _cSock) {
     char szRevc[1024]; //加一个缓冲区
     int nLen = recv(_cSock, szRevc, sizeof(dataHeader), 0);
@@ -70,7 +79,7 @@ int process(SOCKET _cSock) {
         recv(_cSock, szRevc + sizeof(dataHeader), hd->dataLen - sizeof(dataHeader), 0);
 
         login *loginData = (login *)szRevc;
-        printf("recv CMD_LOGIN dataLen = %d,account = %s,password %s \n", loginData->dataLen, loginData->account, loginData->password);
+        printf("recv <socket = %d> ,CMD_LOGIN dataLen = %d,account = %s,password=%s \n", _cSock, loginData->dataLen, loginData->account, loginData->password);
 
         loginResult loginRes;
         send(_cSock, (const char *)&loginRes, sizeof(loginResult), 0);
@@ -78,7 +87,7 @@ int process(SOCKET _cSock) {
     case CMD_LOGOUT: {
         recv(_cSock, szRevc + sizeof(dataHeader), hd->dataLen - sizeof(dataHeader), 0);
         logout *logoutData = (logout *)szRevc;
-        printf("recv CMD_LOGOUTdataLen = %d, account = %s\n", logoutData->dataLen, logoutData->account);
+        printf("recv <socket = %d>, CMD_LOGOUT dataLen = %d, account = %s\n", _cSock,  logoutData->dataLen, logoutData->account);
 
         logoutResult logoutRes;
         send(_cSock, (const char *)&logoutRes, sizeof(logoutResult), 0);
@@ -121,7 +130,6 @@ int main() {
         printf("listen success \n");
     }
 
-
     while (true) {
         fd_set fdRead;
         fd_set fdWrite;
@@ -145,10 +153,10 @@ int main() {
             FD_SET(g_client[i], &fdRead);
         }
 
-        timeval time = {0, 0};//加入这个参数为null 可以当做一个必须要客户端请求的服务器
+        timeval time = {1, 0};//加入这个参数为null 可以当做一个必须要客户端请求的服务器
         int ret = select(_sock + 1, &fdRead, &fdWrite, &fdExcept, &time); //select 性能瓶颈 最大的集合只有64
         if (ret < 0) {
-            printf("select end");
+            printf("select end \n");
             break;
         }
         if (FD_ISSET(_sock, &fdRead)) {
@@ -161,6 +169,12 @@ int main() {
             _cSock = accept(_sock, (sockaddr*)&clientAddr, &nAddrLen);
             if (INVALID_SOCKET == _cSock) {
                 printf("error, client invalid socket \n");
+            }
+
+            for (int i = 0; i < (int)g_client.size(); i++) {
+                newClientJoin newClientJoin;
+                newClientJoin.sock = _cSock;
+                send(g_client[i], (const char *)&newClientJoin, sizeof(logoutResult), 0);
             }
             g_client.push_back(_cSock);
             printf("new client add: _cSock = %d, ip = %s \n", (int)_cSock, inet_ntoa(clientAddr.sin_addr));
@@ -177,6 +191,7 @@ int main() {
         }
 
         //可以加服务器主动推送
+        printf("空闲处理逻辑\n");
     }
 
     //-close-
