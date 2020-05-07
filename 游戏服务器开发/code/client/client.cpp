@@ -11,7 +11,9 @@
 enum CMD {
     CMD_ERROR = 0,
     CMD_LOGIN,
+    CMD_LOGIN_RESULT,
     CMD_LOGOUT,
+    CMD_LOGOUT_RESULT,
 };
 
 struct dataHeader {
@@ -20,21 +22,39 @@ struct dataHeader {
 };
 
 //DataPackage
-struct login {
+struct login : public dataHeader {
+    login() {
+        cmd = CMD_LOGIN;
+        dataLen = sizeof(login);
+    };
     char account[32];
     char password[32];
 };
 
-struct loginResult {
-    int res;
+struct loginResult : public dataHeader {
+    loginResult() {
+        cmd = CMD_LOGIN_RESULT;
+        dataLen = sizeof(loginResult);
+        result = 0;
+    };
+    int result;
 };
 
-struct logout {
+struct logout : public dataHeader {
+    logout() {
+        cmd = CMD_LOGOUT;
+        dataLen = sizeof(logout);
+    };
     char account[32];
 };
 
-struct logoutResult {
-    int res;
+struct logoutResult : public dataHeader {
+    logoutResult() {
+        cmd = CMD_LOGOUT_RESULT;
+        dataLen = sizeof(logoutResult);
+        result = 0;
+    };
+    int result;
 };
 
 int main() {
@@ -57,7 +77,7 @@ int main() {
     if (SOCKET_ERROR == connect(_sock, (sockaddr*)&_sin, sizeof(sockaddr_in))) {
         printf("connect error \n");
     } else {
-        printf("connect error \n");
+        printf("connect succeed \n");
     }
     while (true) {
         char cmdBuf[128] = {};
@@ -66,39 +86,27 @@ int main() {
         if (0 == strcmp(cmdBuf, "exit")) {
             break;
         } else if (0 == strcmp(cmdBuf, "login")) {
-            dataHeader dh = {CMD_LOGIN, sizeof(login)};
-            login loginData = {"ll", "123456"};
+            login loginData;
+            strcpy_s(loginData.account, "ssss");
+            strcpy_s(loginData.password, "123");
             //5 send
-            send(_sock, (const char*)&dh, sizeof(dataHeader), 0);
             send(_sock, (const char*)&loginData, sizeof(login), 0);
             //6 recv
-            dataHeader resDh = {};
             loginResult loginRes = {};
-            recv(_sock, (char *)&resDh, sizeof(dataHeader), 0);
             recv(_sock, (char *)&loginRes, sizeof(loginResult), 0);
-            printf("recv resDh = %d , loginRes = %d \n", resDh.cmd, loginRes.res);
+            printf("recv resDh = %d , loginRes = %d \n", loginRes.cmd, loginRes.result);
         } else if (0 == strcmp(cmdBuf, "logout")) {
             dataHeader dh = { CMD_LOGOUT, sizeof(logout) };
-            logout logoutData = { "ll" };
+            logout logoutData = {};
+            strcpy_s(logoutData.account, "ssss");
             //5 send
-            send(_sock, (const char*)&dh, sizeof(dataHeader), 0);
             send(_sock, (const char*)&logoutData, sizeof(logout), 0);
             //6 recv
-            dataHeader resDh = {};
             logoutResult logoutRes = {};
-            recv(_sock, (char *)&resDh, sizeof(dataHeader), 0);
             recv(_sock, (char *)&logoutRes, sizeof(logoutResult), 0);
-            printf("recv resDh = %d , logout = %d \n", resDh.cmd, logoutRes.res);
-            if (logoutRes.res == 0) {
-
-            }
+            printf("recv resDh = %d , logout = %d \n", logoutRes.cmd, logoutRes.result);
         } else {
-            //5 send
-            send(_sock, cmdBuf, strlen(cmdBuf) + 1, 0);
-            dataHeader resDh = {};
-            recv(_sock, (char *)&resDh, sizeof(dataHeader), 0);
-            //6 recv
-            printf("recv resDh = %d \n", resDh.cmd);
+            printf("print error \n");
         }
     }
 

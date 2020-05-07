@@ -11,7 +11,9 @@
 enum CMD {
     CMD_ERROR = 0,
     CMD_LOGIN,
+    CMD_LOGIN_RESULT,
     CMD_LOGOUT,
+    CMD_LOGOUT_RESULT,
 };
 
 struct dataHeader {
@@ -20,21 +22,39 @@ struct dataHeader {
 };
 
 //DataPackage
-struct login {
+struct login : public dataHeader {
+    login() {
+        cmd = CMD_LOGIN;
+        dataLen = sizeof(login);
+    };
     char account[32];
     char password[32];
 };
 
-struct loginResult {
-    int res;
+struct loginResult : public dataHeader {
+    loginResult() {
+        cmd = CMD_LOGIN_RESULT;
+        dataLen = sizeof(loginResult);
+        result = 0;
+    };
+    int result;
 };
 
-struct logout {
+struct logout : public dataHeader {
+    logout() {
+        cmd = CMD_LOGOUT;
+        dataLen = sizeof(logout);
+    };
     char account[32];
 };
 
-struct logoutResult {
-    int res;
+struct logoutResult : public dataHeader {
+    logoutResult() {
+        cmd = CMD_LOGOUT_RESULT;
+        dataLen = sizeof(logoutResult);
+        result = 0;
+    };
+    int result;
 };
 
 int main() {
@@ -80,28 +100,27 @@ int main() {
         //recv client data
         dataHeader hd = {};
         int nLen = recv(_cSock, (char *)&hd, sizeof(dataHeader), 0);
-        printf("recv cmd = %d, dataLen %d \n", hd.cmd, hd.dataLen);
-
+        if (nLen <= 0) {
+            printf("client exist out\n");
+            break;
+        }
         switch (hd.cmd) {
         case CMD_LOGIN: {
             login loginData = {};
-            recv(_cSock, (char *)&loginData, sizeof(login), 0);
-            printf("recv account = %s,password %s \n", loginData.account, loginData.password);
+            recv(_cSock, (char *)&loginData + sizeof(dataHeader), sizeof(login) - sizeof(dataHeader), 0);
+            printf("recv CMD_LOGIN dataLen = %d,account = %s,password %s \n", loginData.dataLen, loginData.account, loginData.password);
 
-            send(_cSock, (const char *)&hd, sizeof(dataHeader), 0);
-            loginResult loginRes = { 0 };
+            loginResult loginRes;
             send(_cSock, (const char *)&loginRes, sizeof(loginResult), 0);
         } break;
         case CMD_LOGOUT: {
             logout logoutData = {};
-            recv(_cSock, (char *)&logoutData, sizeof(logout), 0);
-            printf("recv account = %s\n", logoutData.account);
+            recv(_cSock, (char *)&logoutData + sizeof(dataHeader), sizeof(logout) - sizeof(dataHeader), 0);
+            printf("recv CMD_LOGOUTdataLen = %d, account = %s\n", logoutData.dataLen, logoutData.account);
 
-            send(_cSock, (const char *)&hd, sizeof(dataHeader), 0);
-            logoutResult logoutRes = { 0 };
+            logoutResult logoutRes;
             send(_cSock, (const char *)&logoutRes, sizeof(logoutResult), 0);
         }break;
-
         default: {
             hd.cmd = CMD_ERROR;
             send(_cSock, (const char *)&hd, sizeof(dataHeader), 0);
@@ -115,5 +134,6 @@ int main() {
     WSACleanup();
 
     printf("server exist out\n");
+    getchar();
     return 0;
 }
