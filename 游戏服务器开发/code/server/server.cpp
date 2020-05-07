@@ -98,32 +98,34 @@ int main() {
 
     while (true) {
         //recv client data
-        dataHeader hd = {};
-        int nLen = recv(_cSock, (char *)&hd, sizeof(dataHeader), 0);
+        char szRevc[1024]; //加一个缓冲区
+        int nLen = recv(_cSock, szRevc, sizeof(dataHeader), 0);
+        dataHeader *hd = (dataHeader*)szRevc;
         if (nLen <= 0) {
             printf("client exist out\n");
             break;
         }
-        switch (hd.cmd) {
+        switch (hd->cmd) {
         case CMD_LOGIN: {
-            login loginData = {};
-            recv(_cSock, (char *)&loginData + sizeof(dataHeader), sizeof(login) - sizeof(dataHeader), 0);
-            printf("recv CMD_LOGIN dataLen = %d,account = %s,password %s \n", loginData.dataLen, loginData.account, loginData.password);
+            recv(_cSock, szRevc + sizeof(dataHeader), hd->dataLen - sizeof(dataHeader), 0);
+
+            login *loginData = (login *)szRevc;
+            printf("recv CMD_LOGIN dataLen = %d,account = %s,password %s \n", loginData->dataLen, loginData->account, loginData->password);
 
             loginResult loginRes;
             send(_cSock, (const char *)&loginRes, sizeof(loginResult), 0);
         } break;
         case CMD_LOGOUT: {
-            logout logoutData = {};
-            recv(_cSock, (char *)&logoutData + sizeof(dataHeader), sizeof(logout) - sizeof(dataHeader), 0);
-            printf("recv CMD_LOGOUTdataLen = %d, account = %s\n", logoutData.dataLen, logoutData.account);
+            recv(_cSock, szRevc + sizeof(dataHeader), hd->dataLen - sizeof(dataHeader), 0);
+            logout *logoutData = (logout *)szRevc;
+            printf("recv CMD_LOGOUTdataLen = %d, account = %s\n", logoutData->dataLen, logoutData->account);
 
             logoutResult logoutRes;
             send(_cSock, (const char *)&logoutRes, sizeof(logoutResult), 0);
         }break;
         default: {
-            hd.cmd = CMD_ERROR;
-            send(_cSock, (const char *)&hd, sizeof(dataHeader), 0);
+            dataHeader head = { CMD_ERROR , 0 };
+            send(_cSock, (const char *)&head, sizeof(dataHeader), 0);
         }break;
         }
     }
