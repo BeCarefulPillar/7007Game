@@ -4,7 +4,7 @@
 #define WIN32_LEAN_AND_MEAN //避免windows.h 和 WinSock2.h 中的宏定义重复
 #include <windows.h>
 #include <WinSock2.h>
-
+#include <vector>
 //静态链接库 win平台
 //#pragma comment(lib, "ws2_32.lib")
 
@@ -57,6 +57,41 @@ struct logoutResult : public dataHeader {
     int result;
 };
 
+int process(SOCKET _cSock) {
+    char szRevc[1024]; //加一个缓冲区
+    int nLen = recv(_cSock, szRevc, sizeof(dataHeader), 0);
+    dataHeader *hd = (dataHeader*)szRevc;
+    if (nLen <= 0) {
+        printf("client exist out\n");
+        return -1;
+    }
+    switch (hd->cmd) {
+    case CMD_LOGIN: {
+        recv(_cSock, szRevc + sizeof(dataHeader), hd->dataLen - sizeof(dataHeader), 0);
+
+        login *loginData = (login *)szRevc;
+        printf("recv CMD_LOGIN dataLen = %d,account = %s,password %s \n", loginData->dataLen, loginData->account, loginData->password);
+
+        loginResult loginRes;
+        send(_cSock, (const char *)&loginRes, sizeof(loginResult), 0);
+    } break;
+    case CMD_LOGOUT: {
+        recv(_cSock, szRevc + sizeof(dataHeader), hd->dataLen - sizeof(dataHeader), 0);
+        logout *logoutData = (logout *)szRevc;
+        printf("recv CMD_LOGOUTdataLen = %d, account = %s\n", logoutData->dataLen, logoutData->account);
+
+        logoutResult logoutRes;
+        send(_cSock, (const char *)&logoutRes, sizeof(logoutResult), 0);
+    }break;
+    default: {
+        dataHeader head = { CMD_ERROR , 0 };
+        send(_cSock, (const char *)&head, sizeof(dataHeader), 0);
+    }break;
+    }
+    return 0;
+}
+
+std::vector<SOCKET> g_client;
 int main() {
     WORD ver = MAKEWORD(2, 2); //socket版本 2.x环境
     WSADATA data;
@@ -85,49 +120,63 @@ int main() {
     } else {
         printf("listen success \n");
     }
-    //-accept-
-    sockaddr_in clientAddr = {};
-    int nAddrLen = sizeof(sockaddr_in);
-    SOCKET _cSock = INVALID_SOCKET; //无效socket
 
-    _cSock = accept(_sock, (sockaddr*)&clientAddr, &nAddrLen);
-    if (INVALID_SOCKET == _cSock) {
-        printf("error, client invalid socket \n");
-    }
-    printf("new client add: _cSock = %d, ip = %s \n", (int)_cSock, inet_ntoa(clientAddr.sin_addr));
 
     while (true) {
-        //recv client data
-        char szRevc[1024]; //加一个缓冲区
-        int nLen = recv(_cSock, szRevc, sizeof(dataHeader), 0);
-        dataHeader *hd = (dataHeader*)szRevc;
-        if (nLen <= 0) {
-            printf("client exist out\n");
+        fd_set fdRead;
+        fd_set fdWrite;
+        fd_set fdExcept;
+        FD_ZERO(&fdRead);
+        FD_ZERO(&fdWrite);
+        FD_ZERO(&fdExcept);
+        
+        FD_SET(_sock, &fdRead);
+        FD_SET(_sock, &fdWrite);
+        FD_SET(_sock, &fdExcept);
+        //伯克利 socket
+        /*param
+        1.在windows上没有意义, fd_set 所有集合中 描述符(socket)范围, 而不是数量
+        2.可读集合
+        3.可写集合
+        4.异常集合
+        5.超时时间
+        */
+        for (int i = 0; i< (int)g_client.size();i++) {
+            FD_SET(g_client[i], &fdRead);
+        }
+
+        timeval time = {0, 0};//加入这个参数为null 可以当做一个必须要客户端请求的服务器
+        int ret = select(_sock + 1, &fdRead, &fdWrite, &fdExcept, &time); //select 性能瓶颈 最大的集合只有64
+        if (ret < 0) {
+            printf("select end");
             break;
         }
-        switch (hd->cmd) {
-        case CMD_LOGIN: {
-            recv(_cSock, szRevc + sizeof(dataHeader), hd->dataLen - sizeof(dataHeader), 0);
+        if (FD_ISSET(_sock, &fdRead)) {
+            FD_CLR(_sock, &fdRead);
+            //-accept-
+            sockaddr_in clientAddr = {};
+            int nAddrLen = sizeof(sockaddr_in);
+            SOCKET _cSock = INVALID_SOCKET; //无效socket
 
-            login *loginData = (login *)szRevc;
-            printf("recv CMD_LOGIN dataLen = %d,account = %s,password %s \n", loginData->dataLen, loginData->account, loginData->password);
-
-            loginResult loginRes;
-            send(_cSock, (const char *)&loginRes, sizeof(loginResult), 0);
-        } break;
-        case CMD_LOGOUT: {
-            recv(_cSock, szRevc + sizeof(dataHeader), hd->dataLen - sizeof(dataHeader), 0);
-            logout *logoutData = (logout *)szRevc;
-            printf("recv CMD_LOGOUTdataLen = %d, account = %s\n", logoutData->dataLen, logoutData->account);
-
-            logoutResult logoutRes;
-            send(_cSock, (const char *)&logoutRes, sizeof(logoutResult), 0);
-        }break;
-        default: {
-            dataHeader head = { CMD_ERROR , 0 };
-            send(_cSock, (const char *)&head, sizeof(dataHeader), 0);
-        }break;
+            _cSock = accept(_sock, (sockaddr*)&clientAddr, &nAddrLen);
+            if (INVALID_SOCKET == _cSock) {
+                printf("error, client invalid socket \n");
+            }
+            g_client.push_back(_cSock);
+            printf("new client add: _cSock = %d, ip = %s \n", (int)_cSock, inet_ntoa(clientAddr.sin_addr));
         }
+        for (int i = 0; i < (int)fdRead.fd_count; i++) {
+            //recv client data
+            int ret = process(fdRead.fd_array[i]);
+            if (ret == -1) {
+                auto iter = find(g_client.begin(), g_client.end(), fdRead.fd_array[i]);
+                if (iter != g_client.end()) {
+                    g_client.erase(iter);
+                }
+            }
+        }
+
+        //可以加服务器主动推送
     }
 
     //-close-
