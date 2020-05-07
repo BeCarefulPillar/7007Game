@@ -8,15 +8,38 @@
 //静态链接库 win平台
 //#pragma comment(lib, "ws2_32.lib")
 
-struct DataPackage {
-    int age;
-    char name[32];
+enum CMD {
+    CMD_ERROR = 0,
+    CMD_LOGIN,
+    CMD_LOGOUT,
 };
 
-int main()
-{
+struct dataHeader {
+    int cmd;
+    int dataLen;
+};
+
+//DataPackage
+struct login {
+    char account[32];
+    char password[32];
+};
+
+struct loginResult {
+    int res;
+};
+
+struct logout {
+    char account[32];
+};
+
+struct logoutResult {
+    int res;
+};
+
+int main() {
     WORD ver = MAKEWORD(2, 2); //socket版本 2.x环境
-    WSADATA data;               
+    WSADATA data;
     WSAStartup(ver, &data);
     //---------------------------
     //-socket
@@ -53,26 +76,39 @@ int main()
     }
     printf("new client add: _cSock = %d, ip = %s \n", (int)_cSock, inet_ntoa(clientAddr.sin_addr));
 
-    char _recvBuf[128] = {};
-
     while (true) {
         //recv client data
-        int nLen = recv(_cSock, _recvBuf, 128,0);
+        dataHeader hd = {};
+        int nLen = recv(_cSock, (char *)&hd, sizeof(dataHeader), 0);
+        printf("recv cmd = %d, dataLen %d \n", hd.cmd, hd.dataLen);
 
-        if (nLen <= 0) {
-            printf("client exist out \n");
-        } else {
-            printf("recv msg %s \n", _recvBuf);
-        }
-        if (0 == strcmp(_recvBuf, "getInfo")) {
-            DataPackage dp = { 18, "乐乐" };
-            send(_cSock, (const char *)&dp, sizeof(dp), 0);
-        } else {
-            char msgBuff[] = "???";
-            send(_cSock, msgBuff, strlen(msgBuff) + 1, 0);
+        switch (hd.cmd) {
+        case CMD_LOGIN: {
+            login loginData = {};
+            recv(_cSock, (char *)&loginData, sizeof(login), 0);
+            printf("recv account = %s,password %s \n", loginData.account, loginData.password);
+
+            send(_cSock, (const char *)&hd, sizeof(dataHeader), 0);
+            loginResult loginRes = { 0 };
+            send(_cSock, (const char *)&loginRes, sizeof(loginResult), 0);
+        } break;
+        case CMD_LOGOUT: {
+            logout logoutData = {};
+            recv(_cSock, (char *)&logoutData, sizeof(logout), 0);
+            printf("recv account = %s\n", logoutData.account);
+
+            send(_cSock, (const char *)&hd, sizeof(dataHeader), 0);
+            logoutResult logoutRes = { 0 };
+            send(_cSock, (const char *)&logoutRes, sizeof(logoutResult), 0);
+        }break;
+
+        default: {
+            hd.cmd = CMD_ERROR;
+            send(_cSock, (const char *)&hd, sizeof(dataHeader), 0);
+        }break;
         }
     }
-    
+
     //-close-
     closesocket(_sock);
     //---------------------------

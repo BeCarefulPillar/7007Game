@@ -8,9 +8,33 @@
 //静态链接库 win平台
 //#pragma comment(lib, "ws2_32.lib")
 
-struct DataPackage {
-    int age;
-    char name[32];
+enum CMD {
+    CMD_ERROR = 0,
+    CMD_LOGIN,
+    CMD_LOGOUT,
+};
+
+struct dataHeader {
+    int cmd;
+    int dataLen;
+};
+
+//DataPackage
+struct login {
+    char account[32];
+    char password[32];
+};
+
+struct loginResult {
+    int res;
+};
+
+struct logout {
+    char account[32];
+};
+
+struct logoutResult {
+    int res;
 };
 
 int main() {
@@ -41,16 +65,40 @@ int main() {
         //4 deal req
         if (0 == strcmp(cmdBuf, "exit")) {
             break;
+        } else if (0 == strcmp(cmdBuf, "login")) {
+            dataHeader dh = {CMD_LOGIN, sizeof(login)};
+            login loginData = {"ll", "123456"};
+            //5 send
+            send(_sock, (const char*)&dh, sizeof(dataHeader), 0);
+            send(_sock, (const char*)&loginData, sizeof(login), 0);
+            //6 recv
+            dataHeader resDh = {};
+            loginResult loginRes = {};
+            recv(_sock, (char *)&resDh, sizeof(dataHeader), 0);
+            recv(_sock, (char *)&loginRes, sizeof(loginResult), 0);
+            printf("recv resDh = %d , loginRes = %d \n", resDh.cmd, loginRes.res);
+        } else if (0 == strcmp(cmdBuf, "logout")) {
+            dataHeader dh = { CMD_LOGOUT, sizeof(logout) };
+            logout logoutData = { "ll" };
+            //5 send
+            send(_sock, (const char*)&dh, sizeof(dataHeader), 0);
+            send(_sock, (const char*)&logoutData, sizeof(logout), 0);
+            //6 recv
+            dataHeader resDh = {};
+            logoutResult logoutRes = {};
+            recv(_sock, (char *)&resDh, sizeof(dataHeader), 0);
+            recv(_sock, (char *)&logoutRes, sizeof(logoutResult), 0);
+            printf("recv resDh = %d , logout = %d \n", resDh.cmd, logoutRes.res);
+            if (logoutRes.res == 0) {
+
+            }
         } else {
             //5 send
             send(_sock, cmdBuf, strlen(cmdBuf) + 1, 0);
-        }
-        //6 recv
-        char recvBuf[256] = {};
-        int nlen = recv(_sock, recvBuf, 256, 0);
-        if (nlen > 0) {
-            DataPackage *dp = (DataPackage *)recvBuf;
-            printf("recv data age = %d , name = %s \n", dp->age, dp->name);
+            dataHeader resDh = {};
+            recv(_sock, (char *)&resDh, sizeof(dataHeader), 0);
+            //6 recv
+            printf("recv resDh = %d \n", resDh.cmd);
         }
     }
 
