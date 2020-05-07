@@ -5,6 +5,7 @@
 #include <windows.h>
 #include <WinSock2.h>
 
+#include <thread>
 //静态链接库 win平台
 //#pragma comment(lib, "ws2_32.lib")
 
@@ -94,7 +95,31 @@ int process(SOCKET _sock) {
     }
     return 0;
 }
-
+bool g_bRun = true;
+void cmdInput(SOCKET sock) {
+    while (true) {
+        char cmdMsg[32];
+        scanf_s("%s", cmdMsg ,sizeof(cmdMsg));
+        if (0 == strcmp(cmdMsg, "exit")) {
+            printf("线程退出 \n");
+            g_bRun = false;
+            break;
+        } else if (0 == strcmp(cmdMsg, "login")) {
+            login loginData;
+            strcpy_s(loginData.account, "ssss");
+            strcpy_s(loginData.password, "123");
+            //5 send
+            send(sock, (const char*)&loginData, sizeof(login), 0);
+        } else if (0 == strcmp(cmdMsg, "logout")) {
+            logout logoutData;
+            strcpy_s(logoutData.account, "ssss");
+            //5 send
+            send(sock, (const char*)&logoutData, sizeof(logout), 0);
+        } else {
+            printf("input error \n");
+        }
+    }
+}
 
 int main() {
     WORD ver = MAKEWORD(2, 2); //socket版本 2.x环境
@@ -118,7 +143,10 @@ int main() {
     } else {
         printf("connect succeed \n");
     }
-    while (true) {
+    std::thread t1(cmdInput, _sock);
+    t1.detach(); //和主线程分离
+
+    while (g_bRun) {
         fd_set fdRead;
         FD_ZERO(&fdRead);
         FD_SET(_sock, &fdRead);
@@ -137,17 +165,7 @@ int main() {
             }
         }
 
-        printf("空闲时发送  \n");
         //空闲时发送
-        login loginData;
-        strcpy_s(loginData.account, "ssss");
-        strcpy_s(loginData.password, "123");
-        //5 send
-        send(_sock, (const char*)&loginData, sizeof(login), 0);
-        
-        
-        Sleep(1000);
-
     }
 
     
