@@ -77,7 +77,7 @@ struct newClientJoin : public dataHeader {
 
 int process(SOCKET _sock) {
     char szRevc[1024]; //加一个缓冲区
-    int nLen = recv(_sock, szRevc, sizeof(dataHeader), 0);
+    int nLen = (int)recv(_sock, szRevc, sizeof(dataHeader), 0);
     dataHeader *hd = (dataHeader*)szRevc;
     if (nLen <= 0) {
         printf("server exist out\n");
@@ -148,7 +148,7 @@ int main() {
     _sin.sin_family = AF_INET;
     _sin.sin_port = htons(4567);
 #ifdef _WIN32
-    _sin.sin_addr.S_un.S_addr = inet_addr("127.0.0.1");
+    _sin.sin_addr.S_un.S_addr = inet_addr("192.168.1.203");
 #else
     _sin.sin_addr.s_addr = inet_addr("192.168.1.203");
 #endif
