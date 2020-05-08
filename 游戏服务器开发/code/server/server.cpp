@@ -16,7 +16,6 @@
 #include <vector>
 //静态链接库 win平台
 //#pragma comment(lib, "ws2_32.lib")
-
 enum CMD {
     CMD_ERROR = 0,
     CMD_LOGIN,
@@ -26,84 +25,84 @@ enum CMD {
     CMD_NEW_CLIENT_JOIN,
 };
 
-struct dataHeader {
+struct DataHeader {
     int cmd;
     int dataLen;
 };
 
 //DataPackage
-struct login : public dataHeader {
-    login() {
+struct Login : public DataHeader {
+    Login() {
         cmd = CMD_LOGIN;
-        dataLen = sizeof(login);
+        dataLen = sizeof(Login);
     };
     char account[32];
     char password[32];
 };
 
-struct loginResult : public dataHeader {
-    loginResult() {
+struct LoginResult : public DataHeader {
+    LoginResult() {
         cmd = CMD_LOGIN_RESULT;
-        dataLen = sizeof(loginResult);
+        dataLen = sizeof(LoginResult);
         result = 0;
     };
     int result;
 };
 
-struct logout : public dataHeader {
-    logout() {
+struct Logout : public DataHeader {
+    Logout() {
         cmd = CMD_LOGOUT;
-        dataLen = sizeof(logout);
+        dataLen = sizeof(Logout);
     };
     char account[32];
 };
 
-struct logoutResult : public dataHeader {
-    logoutResult() {
+struct LogoutResult : public DataHeader {
+    LogoutResult() {
         cmd = CMD_LOGOUT_RESULT;
-        dataLen = sizeof(logoutResult);
+        dataLen = sizeof(LogoutResult);
         result = 0;
     };
     int result;
 };
 
-struct newClientJoin : public dataHeader {
-    newClientJoin() {
+struct NewClientJoin : public DataHeader {
+    NewClientJoin() {
         cmd = CMD_NEW_CLIENT_JOIN;
-        dataLen = sizeof(logoutResult);
+        dataLen = sizeof(NewClientJoin);
     };
     int sock;
 };
 
 int process(SOCKET _cSock) {
     char szRevc[1024]; //加一个缓冲区
-    int nLen = recv(_cSock, szRevc, sizeof(dataHeader), 0);
-    dataHeader *hd = (dataHeader*)szRevc;
+    int nLen = recv(_cSock, szRevc, sizeof(DataHeader), 0);
+    DataHeader *hd = (DataHeader*)szRevc;
     if (nLen <= 0) {
         printf("sock = %d, client exist out\n", _cSock);
         return -1;
     }
     switch (hd->cmd) {
     case CMD_LOGIN: {
-        recv(_cSock, szRevc + sizeof(dataHeader), hd->dataLen - sizeof(dataHeader), 0);
+        recv(_cSock, szRevc + sizeof(DataHeader), hd->dataLen - sizeof(DataHeader), 0);
 
-        login *loginData = (login *)szRevc;
+        Login *loginData = (Login *)szRevc;
         printf("recv <socket = %d> ,CMD_LOGIN dataLen = %d,account = %s,password=%s \n", _cSock, loginData->dataLen, loginData->account, loginData->password);
 
-        loginResult loginRes;
-        send(_cSock, (const char *)&loginRes, sizeof(loginResult), 0);
+        LoginResult loginRes;
+        send(_cSock, (const char *)&loginRes, sizeof(LoginResult), 0);
     } break;
     case CMD_LOGOUT: {
-        recv(_cSock, szRevc + sizeof(dataHeader), hd->dataLen - sizeof(dataHeader), 0);
-        logout *logoutData = (logout *)szRevc;
+        recv(_cSock, szRevc + sizeof(DataHeader), hd->dataLen - sizeof(DataHeader), 0);
+        Logout *logoutData = (Logout *)szRevc;
         printf("recv <socket = %d>, CMD_LOGOUT dataLen = %d, account = %s\n", _cSock, logoutData->dataLen, logoutData->account);
 
-        logoutResult logoutRes;
-        send(_cSock, (const char *)&logoutRes, sizeof(logoutResult), 0);
+        LogoutResult logoutRes;
+        send(_cSock, (const char *)&logoutRes, sizeof(LogoutResult), 0);
     }break;
     default: {
-        dataHeader head = { CMD_ERROR , 0 };
-        send(_cSock, (const char *)&head, sizeof(dataHeader), 0);
+        DataHeader head = { CMD_ERROR , 0 };
+        send(_cSock, (const char *)&head, sizeof(DataHeader), 0);
     }break;
     }
     return 0;
@@ -129,7 +128,7 @@ int main() {
     _sin.sin_family = AF_INET;
     _sin.sin_port = htons(4567); //主机数据转换到网络数据 host to net unsigned short
 #ifdef _WIN32
-    _sin.sin_addr.S_un.S_addr = inet_addr("192.168.1.203"); //INADDR_ANY; // ip
+    _sin.sin_addr.S_un.S_addr = inet_addr("127.0.0.1"); //INADDR_ANY; // ip
 #else
     _sin.sin_addr.s_addr = inet_addr("192.168.1.181"); //INADDR_ANY; // ip
 #endif
@@ -194,9 +193,9 @@ int main() {
             }
 
             for (int i = 0; i < (int)g_client.size(); i++) {
-                newClientJoin newClientJoin;
+                NewClientJoin newClientJoin;
                 newClientJoin.sock = _cSock;
-                send(g_client[i], (const char *)&newClientJoin, sizeof(logoutResult), 0);
+                send(g_client[i], (const char *)&newClientJoin, sizeof(NewClientJoin), 0);
             }
             g_client.push_back(_cSock);
             printf("new client add: _cSock = %d, ip = %s \n", (int)_cSock, inet_ntoa(clientAddr.sin_addr));
