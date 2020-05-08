@@ -1,9 +1,17 @@
 ﻿#include <iostream>
-
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
+#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN //避免windows.h 和 WinSock2.h 中的宏定义重复
 #include <windows.h>
 #include <WinSock2.h>
+#else
+#include <unistd.h> //uni std
+#include <arpa/inet.h>
+#include <string.h>
+
+#define SOCKET int
+#define INVALID_SOCKET  (SOCKET)(~0)
+#define SOCKET_ERROR            (-1)
+#endif
 
 #include <thread>
 //静态链接库 win平台
@@ -99,20 +107,20 @@ bool g_bRun = true;
 void cmdInput(SOCKET sock) {
     while (true) {
         char cmdMsg[32];
-        scanf_s("%s", cmdMsg ,sizeof(cmdMsg));
+        scanf("%s", cmdMsg);
         if (0 == strcmp(cmdMsg, "exit")) {
             printf("线程退出 \n");
             g_bRun = false;
             break;
         } else if (0 == strcmp(cmdMsg, "login")) {
             login loginData;
-            strcpy_s(loginData.account, "ssss");
-            strcpy_s(loginData.password, "123");
+            strcpy(loginData.account, "ssss");
+            strcpy(loginData.password, "123");
             //5 send
             send(sock, (const char*)&loginData, sizeof(login), 0);
         } else if (0 == strcmp(cmdMsg, "logout")) {
             logout logoutData;
-            strcpy_s(logoutData.account, "ssss");
+            strcpy(logoutData.account, "ssss");
             //5 send
             send(sock, (const char*)&logoutData, sizeof(logout), 0);
         } else {
@@ -122,9 +130,11 @@ void cmdInput(SOCKET sock) {
 }
 
 int main() {
+#ifdef _WIN32
     WORD ver = MAKEWORD(2, 2); //socket版本 2.x环境
     WSADATA data;
     WSAStartup(ver, &data);
+#endif
     //---------------------------
     //1 socket
     SOCKET _sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); //ipv4, 流数据, tcp
@@ -137,7 +147,11 @@ int main() {
     sockaddr_in _sin = {};
     _sin.sin_family = AF_INET;
     _sin.sin_port = htons(4567);
+#ifdef _WIN32
     _sin.sin_addr.S_un.S_addr = inet_addr("127.0.0.1");
+#else
+    _sin.sin_addr.s_addr = inet_addr("192.168.1.203");
+#endif
     if (SOCKET_ERROR == connect(_sock, (sockaddr*)&_sin, sizeof(sockaddr_in))) {
         printf("connect error \n");
     } else {
@@ -150,7 +164,7 @@ int main() {
         fd_set fdRead;
         FD_ZERO(&fdRead);
         FD_SET(_sock, &fdRead);
-        
+
         timeval t = { 1,0 };
         int ret = select(_sock + 1, &fdRead, 0, 0, &t);
         if (ret < 0) {
@@ -167,12 +181,14 @@ int main() {
 
         //空闲时发送
     }
-
-    
+    //---------------------------
+#ifdef _WIN32
     //7close-
     closesocket(_sock);
-    //---------------------------
     WSACleanup();
+#else
+    close(_sock);
+#endif
     printf("client out 2 \n");
     getchar();
     return 0;

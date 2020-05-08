@@ -117,7 +117,7 @@ int main() {
     sockaddr_in _sin = {};
     _sin.sin_family = AF_INET;
     _sin.sin_port = htons(4567); //主机数据转换到网络数据 host to net unsigned short
-    _sin.sin_addr.S_un.S_addr = inet_addr("127.0.0.1"); //INADDR_ANY; // ip
+    _sin.sin_addr.S_un.S_addr = inet_addr("192.168.1.203"); //INADDR_ANY; // ip
     if (SOCKET_ERROR == bind(_sock, (sockaddr*)&_sin, sizeof(sockaddr_in))) {
         printf("bind error \n");
     } else {
@@ -191,7 +191,6 @@ int main() {
         }
 
         //可以加服务器主动推送
-        printf("空闲处理逻辑\n");
     }
 
     //-close-
