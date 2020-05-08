@@ -1,9 +1,18 @@
-﻿#include <iostream>
-
-#define _WINSOCK_DEPRECATED_NO_WARNINGS
+﻿#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN //避免windows.h 和 WinSock2.h 中的宏定义重复
 #include <windows.h>
 #include <WinSock2.h>
+#else
+#include <unistd.h> //uni std
+#include <arpa/inet.h>
+#include <string.h>
+
+#define SOCKET int
+#define INVALID_SOCKET  (SOCKET)(~0)
+#define SOCKET_ERROR            (-1)
+#endif
+#include <stdio.h>
+#include <thread>
 #include <vector>
 //静态链接库 win平台
 //#pragma comment(lib, "ws2_32.lib")
@@ -71,7 +80,7 @@ int process(SOCKET _cSock) {
     int nLen = recv(_cSock, szRevc, sizeof(dataHeader), 0);
     dataHeader *hd = (dataHeader*)szRevc;
     if (nLen <= 0) {
-        printf("client exist out\n");
+        printf("sock = %d, client exist out\n", _cSock);
         return -1;
     }
     switch (hd->cmd) {
@@ -87,7 +96,7 @@ int process(SOCKET _cSock) {
     case CMD_LOGOUT: {
         recv(_cSock, szRevc + sizeof(dataHeader), hd->dataLen - sizeof(dataHeader), 0);
         logout *logoutData = (logout *)szRevc;
-        printf("recv <socket = %d>, CMD_LOGOUT dataLen = %d, account = %s\n", _cSock,  logoutData->dataLen, logoutData->account);
+        printf("recv <socket = %d>, CMD_LOGOUT dataLen = %d, account = %s\n", _cSock, logoutData->dataLen, logoutData->account);
 
         logoutResult logoutRes;
         send(_cSock, (const char *)&logoutRes, sizeof(logoutResult), 0);
@@ -102,9 +111,11 @@ int process(SOCKET _cSock) {
 
 std::vector<SOCKET> g_client;
 int main() {
+#ifdef _WIN32
     WORD ver = MAKEWORD(2, 2); //socket版本 2.x环境
     WSADATA data;
     WSAStartup(ver, &data);
+#endif
     //---------------------------
     //-socket
     SOCKET _sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); //ipv4, 流数据, tcp
@@ -117,7 +128,11 @@ int main() {
     sockaddr_in _sin = {};
     _sin.sin_family = AF_INET;
     _sin.sin_port = htons(4567); //主机数据转换到网络数据 host to net unsigned short
+#ifdef _WIN32
     _sin.sin_addr.S_un.S_addr = inet_addr("192.168.1.203"); //INADDR_ANY; // ip
+#else
+    _sin.sin_addr.s_addr = inet_addr("192.168.1.181"); //INADDR_ANY; // ip
+#endif
     if (SOCKET_ERROR == bind(_sock, (sockaddr*)&_sin, sizeof(sockaddr_in))) {
         printf("bind error \n");
     } else {
@@ -137,7 +152,7 @@ int main() {
         FD_ZERO(&fdRead);
         FD_ZERO(&fdWrite);
         FD_ZERO(&fdExcept);
-        
+
         FD_SET(_sock, &fdRead);
         FD_SET(_sock, &fdWrite);
         FD_SET(_sock, &fdExcept);
@@ -149,12 +164,16 @@ int main() {
         4.异常集合
         5.超时时间
         */
-        for (int i = 0; i< (int)g_client.size();i++) {
+        int maxSock = _sock;
+        for (int i = 0; i < (int)g_client.size(); i++) {
             FD_SET(g_client[i], &fdRead);
+            if (g_client[i] > _sock) {
+                maxSock = g_client[i];
+            }
         }
 
-        timeval time = {1, 0};//加入这个参数为null 可以当做一个必须要客户端请求的服务器
-        int ret = select(_sock + 1, &fdRead, &fdWrite, &fdExcept, &time); //select 性能瓶颈 最大的集合只有64
+        timeval time = { 1, 0 };//加入这个参数为null 可以当做一个必须要客户端请求的服务器
+        int ret = select(maxSock + 1, &fdRead, &fdWrite, &fdExcept, &time); //select 性能瓶颈 最大的集合只有64
         if (ret < 0) {
             printf("select end \n");
             break;
@@ -165,8 +184,11 @@ int main() {
             sockaddr_in clientAddr = {};
             int nAddrLen = sizeof(sockaddr_in);
             SOCKET _cSock = INVALID_SOCKET; //无效socket
-
+#ifdef _WIN32
             _cSock = accept(_sock, (sockaddr*)&clientAddr, &nAddrLen);
+#else
+            _cSock = accept(_sock, (sockaddr*)&clientAddr, (socklen_t*)&nAddrLen);
+#endif
             if (INVALID_SOCKET == _cSock) {
                 printf("error, client invalid socket \n");
             }
@@ -179,25 +201,28 @@ int main() {
             g_client.push_back(_cSock);
             printf("new client add: _cSock = %d, ip = %s \n", (int)_cSock, inet_ntoa(clientAddr.sin_addr));
         }
-        for (int i = 0; i < (int)fdRead.fd_count; i++) {
-            //recv client data
-            int ret = process(fdRead.fd_array[i]);
-            if (ret == -1) {
-                auto iter = find(g_client.begin(), g_client.end(), fdRead.fd_array[i]);
-                if (iter != g_client.end()) {
-                    g_client.erase(iter);
+
+        for (int i = 0; i < (int)g_client.size(); i++) {
+            if (FD_ISSET(g_client[i], &fdRead)) {
+                int ret = process(g_client[i]);
+                if (ret == -1) {
+                    auto iter = g_client.begin() + i;
+                    if (iter != g_client.end()) {
+                        g_client.erase(iter);
+                    }
                 }
             }
         }
-
         //可以加服务器主动推送
     }
-
+#ifdef _WIN32
     //-close-
     closesocket(_sock);
     //---------------------------
     WSACleanup();
-
+#else
+    close(_sock);
+#endif
     printf("server exist out\n");
     getchar();
     return 0;

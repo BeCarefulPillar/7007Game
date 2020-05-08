@@ -1,22 +1,21 @@
-﻿#include <iostream>
-#ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN //避免windows.h 和 WinSock2.h 中的宏定义重复
-#include <windows.h>
-#include <WinSock2.h>
+﻿#ifdef _WIN32
+    #define WIN32_LEAN_AND_MEAN //避免windows.h 和 WinSock2.h 中的宏定义重复
+    #include <windows.h>
+    #include <WinSock2.h>
+    //静态链接库 win平台
+    //#pragma comment(lib, "ws2_32.lib")
 #else
-#include <unistd.h> //uni std
-#include <arpa/inet.h>
-#include <string.h>
+    #include <unistd.h> //uni std
+    #include <arpa/inet.h>
+    #include <string.h>
 
-#define SOCKET int
-#define INVALID_SOCKET  (SOCKET)(~0)
-#define SOCKET_ERROR            (-1)
+    #define SOCKET int
+    #define INVALID_SOCKET  (SOCKET)(~0)
+    #define SOCKET_ERROR            (-1)
 #endif
 
+#include <iostream>
 #include <thread>
-//静态链接库 win平台
-//#pragma comment(lib, "ws2_32.lib")
-
 enum CMD {
     CMD_ERROR = 0,
     CMD_LOGIN,
