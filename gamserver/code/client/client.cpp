@@ -30,7 +30,7 @@ int main() {
     
     EasyTcpClient client;
     //client.InitSocket();
-    client.Connet();
+    client.Connet("127.0.0.1", 4567);
 
     std::thread t1(cmdInput, &client);
     t1.detach(); //和主线程分离

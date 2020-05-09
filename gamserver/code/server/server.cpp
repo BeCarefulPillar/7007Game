@@ -222,7 +222,7 @@ int main() {
 #else
     close(_sock);
 #endif
-    printf("server exist out\n");
+    printf(" 服务器退出 \n");
     getchar();
     return 0;
 }

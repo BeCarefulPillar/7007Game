@@ -1,3 +1,5 @@
+﻿#pragma once
+
 enum CMD {
     CMD_ERROR = 0,
     CMD_LOGIN,

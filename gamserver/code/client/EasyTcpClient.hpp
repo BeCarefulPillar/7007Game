@@ -1,10 +1,9 @@
-#ifndef _EasyTcpClien_hpp_
-#define _EasyTcpClien_hpp_
+ï»¿#pragma once
 #ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN //±ÜÃâwindows.h ºÍ WinSock2.h ÖĞµÄºê¶¨ÒåÖØ¸´
+#define WIN32_LEAN_AND_MEAN //é¿å…windows.h å’Œ WinSock2.h ä¸­çš„å®å®šä¹‰é‡å¤
 #include <windows.h>
 #include <WinSock2.h>
-//¾²Ì¬Á´½Ó¿â winÆ½Ì¨
+//é™æ€é“¾æ¥åº“ winå¹³å°
 //#pragma comment(lib, "ws2_32.lib")
 #else
 #include <unistd.h> //uni std
@@ -25,45 +24,46 @@ public:
     EasyTcpClient() {
         _sock = INVALID_SOCKET;
     }
-    //³õÊ¼»¯socket
+    //åˆå§‹åŒ–socket
     void InitSocket() {
         if (INVALID_SOCKET != _sock) {
             Close();
         }
 #ifdef _WIN32
-        WORD ver = MAKEWORD(2, 2); //socket°æ±¾ 2.x»·¾³
+        WORD ver = MAKEWORD(2, 2); //socketç‰ˆæœ¬ 2.xç¯å¢ƒ
         WSADATA data;
         WSAStartup(ver, &data);
 #endif
-        _sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); //ipv4, Á÷Êı¾İ, tcp
+        _sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); //ipv4, æµæ•°æ®, tcp
         if (INVALID_SOCKET == _sock) {
             printf("socket error \n");
         } else {
             printf("socket success \n");
         }
     }
-    //Á¬½Ó·şÎñÆ÷
-    int Connet() {
+    //è¿æ¥æœåŠ¡å™¨
+    int Connet(const char* ip, unsigned short port) {
         if (INVALID_SOCKET == _sock) {
             InitSocket();
         }
         sockaddr_in _sin = {};
         _sin.sin_family = AF_INET;
-        _sin.sin_port = htons(4567);
+        _sin.sin_port = htons(port);
 #ifdef _WIN32
-        _sin.sin_addr.S_un.S_addr = inet_addr("127.0.0.1");
+        _sin.sin_addr.S_un.S_addr = inet_addr(ip);
 #else
-        _sin.sin_addr.s_addr = inet_addr("192.168.1.203");
+        _sin.sin_addr.s_addr = inet_addr(ip);
 #endif
         if (SOCKET_ERROR == connect(_sock, (sockaddr*)&_sin, sizeof(sockaddr_in))) {
             printf("connect error \n");
+            Close();
             return -1;
         } else {
-            printf("connect succeed \n");
+            printf("<sock = %d> è¿æ¥ <%s:%d>æˆåŠŸ \n", (int)_sock, ip, port);
             return 0;
         }
     }
-    //¹Ø±ÕÁ¬½Ó
+    //å…³é—­è¿æ¥
     void Close() {
         if (INVALID_SOCKET == _sock) {
             return;
@@ -77,16 +77,16 @@ public:
 #endif
         _sock = INVALID_SOCKET;
     }
-    //ÔËĞĞselect
+    //è¿è¡Œselect
     bool OnRun() {
         fd_set fdRead;
         FD_ZERO(&fdRead);
         FD_SET(_sock, &fdRead);
 
         timeval t = { 1,0 };
-        int ret = select(_sock + 1, &fdRead, 0, 0, &t);
+        int ret = select((int)_sock + 1, &fdRead, 0, 0, &t);
         if (ret < 0) {
-            printf("¿Í»§¶Ë¹Ø±Õ1 \n");
+            printf("å®¢æˆ·ç«¯å…³é—­1 \n");
             Close();
             return false;
         }
@@ -94,7 +94,7 @@ public:
             FD_CLR(_sock, &fdRead);
             ret = RecvData();
             if (-1 == ret) {
-                printf("¿Í»§¶Ë¹Ø±Õ2 \n");
+                printf("å®¢æˆ·ç«¯å…³é—­2 \n");
                 Close();
                 return false;
             }
@@ -106,13 +106,14 @@ public:
         return _sock != INVALID_SOCKET;
     }
 
-    //´¦ÀíÕ³°ü£¬²ğ°ü
+    //å¤„ç†ç²˜åŒ…ï¼Œæ‹†åŒ…
     int RecvData() {
-        char szRevc[1024]; //¼ÓÒ»¸ö»º³åÇø
+        char szRevc[1024]; //åŠ ä¸€ä¸ªç¼“å†²åŒº
         int nLen = (int)recv(_sock, szRevc, sizeof(DataHeader), 0);
         DataHeader *hd = (DataHeader*)szRevc;
         if (nLen <= 0) {
             printf("server exist out\n");
+            Close();
             return -1;
         }
 
@@ -147,6 +148,7 @@ public:
         }
         return SOCKET_ERROR;
     }
+
     virtual ~EasyTcpClient() {
         Close();
     }
@@ -155,5 +157,3 @@ private:
 
 };
 
-
-#endif // !_EasyTcpClien_hpp_
