@@ -113,19 +113,40 @@ public:
         return _sock != INVALID_SOCKET;
     }
 
+
+#define REVC_BUFF_SIZE 10240
+    char _szRevc[REVC_BUFF_SIZE] = {}; //接受缓冲区
+    char _szMsgBuf[REVC_BUFF_SIZE * 10] = {}; //第二缓冲区，消息缓冲区
+    int _lastPos = 0;//消息缓冲区结尾
     //处理粘包，拆包
     int RecvData() {
-        char szRevc[1024]; //加一个缓冲区
-        int nLen = (int)recv(_sock, szRevc, sizeof(DataHeader), 0);
-        DataHeader *hd = (DataHeader*)szRevc;
+        int nLen = (int)recv(_sock, _szRevc, REVC_BUFF_SIZE, 0);
         if (nLen <= 0) {
-            printf("server exist out\n");
+            printf("服务器已经关闭 \n");
             Close();
             return -1;
         }
+        //收到数据加入缓冲区
+        memcpy(_szMsgBuf + _lastPos, _szRevc, nLen);
+        //消息缓冲区数据尾部向后
+        _lastPos += nLen;
+        //判断消息长度大于消息头
+        while (_lastPos >= sizeof(DataHeader)) {
+            //当前消息
+            DataHeader *hd = (DataHeader*)_szMsgBuf;
+            if (_lastPos >= hd->dataLen) {
+                int msgLen = hd->dataLen;
+                //处理消息
+                OnNetMsg(hd);
+                //数据前移
+                memcpy(_szMsgBuf, _szMsgBuf + msgLen, _lastPos - msgLen);
+                //消息尾部前移
+                _lastPos -= msgLen;
+            } else {
+                break;
+            }
+        }
 
-        recv(_sock, szRevc + sizeof(DataHeader), hd->dataLen - sizeof(DataHeader), 0);
-        OnNetMsg(hd);
         return 0;
     }
     //响应网络消息
@@ -146,6 +167,12 @@ public:
             NewClientJoin *newClient = (NewClientJoin *)hd;
             printf("recv CMD_NEW_CLIENT_JOIN dataLen = %d sock = %d\n", newClient->dataLen, newClient->sock);
         }break;
+        case CMD_ERROR: {
+            printf("recv CMD_ERROR dataLen = %d  \n", hd->dataLen);
+        }break;
+        default:{
+            printf("recv 未知消息 dataLen = %d  \n", hd->dataLen);
+        }
         }
     }
 

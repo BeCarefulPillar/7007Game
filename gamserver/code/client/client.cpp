@@ -34,11 +34,15 @@ int main() {
 
     std::thread t1(cmdInput, &client);
     t1.detach(); //和主线程分离
-
+    //Login loginData;
+    //strcpy(loginData.account, "ssss");
+    //strcpy(loginData.password, "123");
     while (client.IsRun()) {
         client.OnRun();
 
-        //空闲时发送
+        //test
+        //client.SendData(&loginData);
+        
     }
     //---------------------------
     client.Close();
