@@ -1,4 +1,6 @@
-﻿#pragma once
+﻿#ifndef _EASY_TCP_CLIENT_HPP_
+#define _EASY_TCP_CLIENT_HPP_
+
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN //避免windows.h 和 WinSock2.h 中的宏定义重复
 #include <windows.h>
@@ -18,11 +20,13 @@
 #include <stdio.h>
 #include "MessageHeader.hpp"
 class EasyTcpClient {
-    
-public:
     SOCKET _sock;
+public:
     EasyTcpClient() {
         _sock = INVALID_SOCKET;
+    }
+    virtual ~EasyTcpClient() {
+        Close();
     }
     //初始化socket
     void InitSocket() {
@@ -79,6 +83,9 @@ public:
     }
     //运行select
     bool OnRun() {
+        if (!IsRun()) {
+            return false;
+        }
         fd_set fdRead;
         FD_ZERO(&fdRead);
         FD_SET(_sock, &fdRead);
@@ -121,8 +128,8 @@ public:
         OnNetMsg(hd);
         return 0;
     }
-
-    void OnNetMsg(DataHeader* hd) {
+    //响应网络消息
+    virtual void OnNetMsg(DataHeader* hd) {
         if (!hd) {
             return;
         }
@@ -149,11 +156,10 @@ public:
         return SOCKET_ERROR;
     }
 
-    virtual ~EasyTcpClient() {
-        Close();
-    }
+
 
 private:
 
 };
 
+#endif
