@@ -17,6 +17,10 @@
 #define SOCKET_ERROR            (-1)
 #endif
 
+#ifndef REVC_BUFF_SIZE
+#define REVC_BUFF_SIZE 10240
+#endif // !REVC_BUFF_SIZE
+
 #include <stdio.h>
 #include "MessageHeader.hpp"
 class EasyTcpClient {
@@ -113,8 +117,6 @@ public:
         return _sock != INVALID_SOCKET;
     }
 
-
-#define REVC_BUFF_SIZE 10240
     char _szRevc[REVC_BUFF_SIZE] = {}; //接受缓冲区
     char _szMsgBuf[REVC_BUFF_SIZE * 10] = {}; //第二缓冲区，消息缓冲区
     int _lastPos = 0;//消息缓冲区结尾
