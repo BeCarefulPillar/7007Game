@@ -1,7 +1,9 @@
 #ifndef _EASY_TCP_SERVER_HPP_
 #define _EASY_TCP_SERVER_HPP_
 #ifdef _WIN32
+#define FD_SETSIZE 1024
 #define WIN32_LEAN_AND_MEAN //避免windows.h 和 WinSock2.h 中的宏定义重复
+
 #include <windows.h>
 #include <WinSock2.h>
 //静态链接库 win平台
@@ -23,6 +25,7 @@
 #include <stdio.h>
 #include <vector>
 #include "MessageHeader.hpp"
+#include "CellTimestame.hpp"
 
 class ClientSocket {
 private:
@@ -56,9 +59,12 @@ public:
 class EasyTcpServer {
     SOCKET _sock;
     std::vector<ClientSocket *> _client; //使用指针的原因是栈空间只有1M到2M
+    CellTimestame _tTime;
+    int _recvCount;
 public:
     EasyTcpServer() {
         _sock = INVALID_SOCKET;
+        _recvCount = 0;
     }
     virtual ~EasyTcpServer() {
         Close();
@@ -142,7 +148,7 @@ public:
             SendData2All(&newClientJoin);
         }
         _client.push_back(new ClientSocket(cSock));
-        printf("新客户端加入: cSock = %d, ip = %s \n", (int)cSock, inet_ntoa(clientAddr.sin_addr));
+        printf("新客户端加入: cSock = %d,客户端数量 = %d, ip = %s \n", (int)cSock, (int)_client.size(), inet_ntoa(clientAddr.sin_addr));
         return cSock;
     }
 
@@ -235,6 +241,13 @@ public:
 
     char _szRevc[REVC_BUFF_SIZE]; //加一个缓冲区
     int RecvData(ClientSocket* client) {
+        _recvCount++;
+        auto t1 = _tTime.GetElapsedSecond();
+        if (t1 > 1.0) {
+            printf("<sock = %d>, 客户端数量 = %d, time = %f ,recvCount = %d\n", (int)_sock, (int)_client.size(), t1, _recvCount);
+            _recvCount = 0;
+            _tTime.Update();
+        }
         int nLen = recv(client->GetSocket(), _szRevc, REVC_BUFF_SIZE, 0);
         if (nLen <= 0) {
             printf("<sock = %d>, 客户端已经退出\n", client->GetSocket());
@@ -267,24 +280,26 @@ public:
 
     //响应网络消息
     virtual void OnNetMsg(DataHeader* hd, SOCKET cSock) {
+
+
         if (!hd) {
             return;
         }
         switch (hd->cmd) {
         case CMD_LOGIN: {
             Login *loginData = (Login *)hd;
-            printf("recv <socket = %d> ,CMD_LOGIN dataLen = %d,account = %s,password=%s \n", cSock, loginData->dataLen, loginData->account, loginData->password);
+            //printf("recv <socket = %d> ,CMD_LOGIN dataLen = %d,account = %s,password=%s \n", cSock, loginData->dataLen, loginData->account, loginData->password);
 
-            LoginResult loginRes;
-            SendData(&loginRes, cSock);
+            //LoginResult loginRes;
+            //SendData(&loginRes, cSock);
         } break;
         case CMD_LOGOUT: {
             Logout *logoutData = (Logout *)hd;
-            printf("recv <socket = %d>, CMD_LOGOUT dataLen = %d, account = %s\n", cSock, logoutData->dataLen, logoutData->account);
+            //printf("recv <socket = %d>, CMD_LOGOUT dataLen = %d, account = %s\n", cSock, logoutData->dataLen, logoutData->account);
 
-            LogoutResult logoutRes;
+            //LogoutResult logoutRes;
 
-            SendData(&logoutRes, cSock);
+            //SendData(&logoutRes, cSock);
         }break;
         default: {
             DataHeader head;

@@ -1,13 +1,15 @@
 ﻿#include <thread>
 #include "EasyTcpClient.hpp"
 
-void cmdInput(EasyTcpClient *client) {
+bool g_run = true;
+void cmdInput(EasyTcpClient * client) {
     while (true) {
         char cmdMsg[32];
         scanf("%s", cmdMsg);
         if (0 == strcmp(cmdMsg, "exit")) {
             printf("线程退出 \n");
-            client->Close();
+            g_run = false;
+            //client->Close();
             break;
         } else if (0 == strcmp(cmdMsg, "login")) {
             Login loginData;
@@ -28,25 +30,37 @@ void cmdInput(EasyTcpClient *client) {
 
 int main() {
     
-    EasyTcpClient client;
+    const int count = 100;
+    EasyTcpClient *client[count];
+    for (int i = 0; i < count; i++) {
+        client[i] = new EasyTcpClient();
+        client[i]->Connet("127.0.0.1", 4567);
+    }
     //client.InitSocket();
-    client.Connet("127.0.0.1", 4567);
+    
 
-    std::thread t1(cmdInput, &client);
+    std::thread t1(cmdInput, client[0]);
     t1.detach(); //和主线程分离
 
     Login loginData;
     strcpy(loginData.account, "ssss");
     strcpy(loginData.password, "123");
-    while (client.IsRun()) {
-        client.OnRun();
+    while (g_run) {
+        //client.OnRun();
 
         //test
-        //client.SendData(&loginData);
+        for (int i = 0; i < count; i++) {
+            client[i]->SendData(&loginData);
+            //client[i]->OnRun();
+        }
+
         
     }
     //---------------------------
-    client.Close();
+    for (int i = 0; i < count; i++) {
+        client[i]->Close();
+        delete client[i];
+    }
     printf("client out \n");
 
     getchar();
