@@ -26,7 +26,7 @@ public:
     }
     //us
     double GetElapsedInMicroSec() {
-        return std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - _begin).count();
+        return (double)std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - _begin).count();
     }
 
 };

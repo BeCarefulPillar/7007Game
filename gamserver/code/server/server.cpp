@@ -21,7 +21,7 @@ int main() {
     server.InitSocket();
     server.Bind("127.0.0.1", 4567);
     server.Listen(5);
-
+    server.Start();
     std::thread t1(cmdInput);
     t1.detach(); //和主线程分离
 

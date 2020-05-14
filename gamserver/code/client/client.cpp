@@ -3,7 +3,7 @@
 
 bool g_run = true;
 const int cCount = 1000;
-const int tCount = 2;
+const int tCount = 4;
 EasyTcpClient *client[cCount];
 
 void cmdThread(EasyTcpClient * client) {
@@ -64,6 +64,35 @@ void sendTheard(int id) {
     }
 }
 
+void mainSend() {
+    for (int i = 0; i < cCount; i++) {
+        client[i] = new EasyTcpClient();
+    }
+
+    for (int i = 0; i < cCount; i++) {
+        client[i]->Connet("127.0.0.1", 4567);
+        printf("count = %d \n", i);
+    }
+    //client.InitSocket();
+
+    Login loginData;
+    strcpy(loginData.account, "ssss");
+    strcpy(loginData.password, "123");
+    while (g_run) {
+        //client.OnRun();
+        //test
+        for (int i = 0; i < cCount; i++) {
+            client[i]->SendData(&loginData);
+            //client[i]->OnRun();
+        }
+    }
+    //---------------------------
+    for (int i = 0; i < cCount; i++) {
+        client[i]->Close();
+        delete client[i];
+    }
+}
+
 int main() {
 
     std::thread cmd(cmdThread, client[0]);
@@ -75,6 +104,8 @@ int main() {
         //send.join(); //阻塞主线程，这里可以使用
     }
 
+   
+   // mainSend();
     while (g_run) {
         Sleep(1000);
     }
