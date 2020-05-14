@@ -46,7 +46,7 @@ public:
         if (INVALID_SOCKET == _sock) {
             printf("socket error \n");
         } else {
-            printf("socket success \n");
+            //printf("socket success \n");
         }
     }
     //连接服务器
@@ -67,7 +67,7 @@ public:
             Close();
             return -1;
         } else {
-            printf("<sock = %d> 连接 <%s:%d>成功 \n", (int)_sock, ip, port);
+            //printf("<sock = %d> 连接 <%s:%d>成功 \n", (int)_sock, ip, port);
             return 0;
         }
     }

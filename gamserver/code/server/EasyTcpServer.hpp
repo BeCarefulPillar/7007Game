@@ -1,12 +1,12 @@
-#ifndef _EASY_TCP_SERVER_HPP_
+ï»¿#ifndef _EASY_TCP_SERVER_HPP_
 #define _EASY_TCP_SERVER_HPP_
 #ifdef _WIN32
 #define FD_SETSIZE 1024
-#define WIN32_LEAN_AND_MEAN //±ÜÃâwindows.h ºÍ WinSock2.h ÖĞµÄºê¶¨ÒåÖØ¸´
+#define WIN32_LEAN_AND_MEAN //é¿å…windows.h å’Œ WinSock2.h ä¸­çš„å®å®šä¹‰é‡å¤
 
 #include <windows.h>
 #include <WinSock2.h>
-//¾²Ì¬Á´½Ó¿â winÆ½Ì¨
+//é™æ€é“¾æ¥åº“ winå¹³å°
 //#pragma comment(lib, "ws2_32.lib")
 #else
 #include <unistd.h> //uni std
@@ -30,8 +30,8 @@
 class ClientSocket {
 private:
     SOCKET _sock;
-    char _szMsgBuf[REVC_BUFF_SIZE * 10]; //µÚ¶ş»º³åÇø£¬ÏûÏ¢»º³åÇø
-    int _lastPos;//ÏûÏ¢»º³åÇø½áÎ²
+    char _szMsgBuf[REVC_BUFF_SIZE * 10]; //ç¬¬äºŒç¼“å†²åŒºï¼Œæ¶ˆæ¯ç¼“å†²åŒº
+    int _lastPos;//æ¶ˆæ¯ç¼“å†²åŒºç»“å°¾
 public:
     ClientSocket(SOCKET sock) {
         _sock = sock;
@@ -58,7 +58,7 @@ public:
 
 class EasyTcpServer {
     SOCKET _sock;
-    std::vector<ClientSocket *> _client; //Ê¹ÓÃÖ¸ÕëµÄÔ­ÒòÊÇÕ»¿Õ¼äÖ»ÓĞ1Mµ½2M
+    std::vector<ClientSocket *> _client; //ä½¿ç”¨æŒ‡é’ˆçš„åŸå› æ˜¯æ ˆç©ºé—´åªæœ‰1Måˆ°2M
     CellTimestame _tTime;
     int _recvCount;
 public:
@@ -70,30 +70,30 @@ public:
         Close();
     }
 
-    //³õÊ¼»¯socket
+    //åˆå§‹åŒ–socket
     void InitSocket() {
         if (INVALID_SOCKET != _sock) {
             Close();
         }
 #ifdef _WIN32
-        WORD ver = MAKEWORD(2, 2); //socket°æ±¾ 2.x»·¾³
+        WORD ver = MAKEWORD(2, 2); //socketç‰ˆæœ¬ 2.xç¯å¢ƒ
         WSADATA data;
         WSAStartup(ver, &data);
 #endif
         //---------------------------
         //-socket
-        _sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); //ipv4, Á÷Êı¾İ, tcp
+        _sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); //ipv4, æµæ•°æ®, tcp
         if (INVALID_SOCKET == _sock) {
-            printf("socket³õÊ¼»¯´íÎó \n");
+            printf("socketåˆå§‹åŒ–é”™è¯¯ \n");
         } else {
-            printf("socket³õÊ¼»¯³É¹¦ \n");
+            printf("socketåˆå§‹åŒ–æˆåŠŸ \n");
         }
     }
-    //°ó¶¨¶Ë¿ÚºÅ
+    //ç»‘å®šç«¯å£å·
     int Bind(const char * ip, unsigned short port) {
         sockaddr_in _sin = {};
         _sin.sin_family = AF_INET;
-        _sin.sin_port = htons(port); //Ö÷»úÊı¾İ×ª»»µ½ÍøÂçÊı¾İ host to net unsigned short
+        _sin.sin_port = htons(port); //ä¸»æœºæ•°æ®è½¬æ¢åˆ°ç½‘ç»œæ•°æ® host to net unsigned short
 #ifdef _WIN32
         if (ip) {
             _sin.sin_addr.S_un.S_addr = inet_addr(ip); //INADDR_ANY; // ip
@@ -110,49 +110,49 @@ public:
 #endif
         int ret = bind(_sock, (sockaddr*)&_sin, sizeof(sockaddr_in));
         if (SOCKET_ERROR == ret) {
-            printf("Á¬½Ó¶Ë¿Ú<port = %d>´íÎó \n",port);
+            printf("è¿æ¥ç«¯å£<port = %d>é”™è¯¯ \n",port);
             Close();
         } else {
-            printf("Á¬½Ó¶Ë¿Ú<port = %d> ³É¹¦ \n",port);
+            printf("è¿æ¥ç«¯å£<port = %d> æˆåŠŸ \n",port);
         }
         return ret;
     }
-    //¼àÌı¶Ë¿ÚºÅ
+    //ç›‘å¬ç«¯å£å·
     int Listen(int n) {
         int ret = listen(_sock, n);
-        if (SOCKET_ERROR == ret) {//¼àÌıÈËÊı 
-            printf("¼àÌı´íÎó \n");
+        if (SOCKET_ERROR == ret) {//ç›‘å¬äººæ•° 
+            printf("ç›‘å¬é”™è¯¯ \n");
             Close();
         } else {
-            printf("¼àÌı³É¹¦ \n");
+            printf("ç›‘å¬æˆåŠŸ \n");
         }
         return ret;
     }
-    //½ÓÊÜ¿Í»§¶ËÁ¬½Ó
+    //æ¥å—å®¢æˆ·ç«¯è¿æ¥
     SOCKET Accept(){
         sockaddr_in clientAddr = {};
         int nAddrLen = sizeof(sockaddr_in);
-        SOCKET cSock = INVALID_SOCKET; //ÎŞĞ§socket
+        SOCKET cSock = INVALID_SOCKET; //æ— æ•ˆsocket
 #ifdef _WIN32
         cSock = accept(_sock, (sockaddr*)&clientAddr, &nAddrLen);
 #else
         cSock = accept(_sock, (sockaddr*)&clientAddr, (socklen_t*)&nAddrLen);
 #endif
         if (INVALID_SOCKET == cSock) {
-            printf("¿Í»§¶ËÁ¬½ÓÊ§°Ü \n");
+            printf("å®¢æˆ·ç«¯è¿æ¥å¤±è´¥ \n");
         }
 
-        for (int i = 0; i < (int)_client.size(); i++) {
-            NewClientJoin newClientJoin;
-            newClientJoin.sock = cSock;
-            SendData2All(&newClientJoin);
-        }
+//         for (int i = 0; i < (int)_client.size(); i++) {
+//             NewClientJoin newClientJoin;
+//             newClientJoin.sock = cSock;
+//             SendData2All(&newClientJoin);
+//         }
         _client.push_back(new ClientSocket(cSock));
-        printf("ĞÂ¿Í»§¶Ë¼ÓÈë: cSock = %d,¿Í»§¶ËÊıÁ¿ = %d, ip = %s \n", (int)cSock, (int)_client.size(), inet_ntoa(clientAddr.sin_addr));
+        printf("æ–°å®¢æˆ·ç«¯åŠ å…¥: cSock = %d,å®¢æˆ·ç«¯æ•°é‡ = %d, ip = %s \n", (int)cSock, (int)_client.size(), inet_ntoa(clientAddr.sin_addr));
         return cSock;
     }
 
-    //¹Ø±Õsocket
+    //å…³é—­socket
     void Close() {
         if (INVALID_SOCKET == _sock) {
             return;
@@ -175,7 +175,7 @@ public:
         _sock = INVALID_SOCKET;
         _client.clear();
     }
-    //´¦ÀíÍøÂçÏûÏ¢
+    //å¤„ç†ç½‘ç»œæ¶ˆæ¯
     bool OnRun() {
         if (!IsRun()) {
             return false;
@@ -190,13 +190,13 @@ public:
         FD_SET(_sock, &fdRead);
         FD_SET(_sock, &fdWrite);
         FD_SET(_sock, &fdExcept);
-        //²®¿ËÀû socket
+        //ä¼¯å…‹åˆ© socket
         /*param
-        1.ÔÚwindowsÉÏÃ»ÓĞÒâÒå, fd_set ËùÓĞ¼¯ºÏÖĞ ÃèÊö·û(socket)·¶Î§, ¶ø²»ÊÇÊıÁ¿
-        2.¿É¶Á¼¯ºÏ
-        3.¿ÉĞ´¼¯ºÏ
-        4.Òì³£¼¯ºÏ
-        5.³¬Ê±Ê±¼ä
+        1.åœ¨windowsä¸Šæ²¡æœ‰æ„ä¹‰, fd_set æ‰€æœ‰é›†åˆä¸­ æè¿°ç¬¦(socket)èŒƒå›´, è€Œä¸æ˜¯æ•°é‡
+        2.å¯è¯»é›†åˆ
+        3.å¯å†™é›†åˆ
+        4.å¼‚å¸¸é›†åˆ
+        5.è¶…æ—¶æ—¶é—´
         */
         int maxSock = _sock;
         for (int i = 0; i < (int)_client.size(); i++) {
@@ -206,10 +206,10 @@ public:
             }
         }
 
-        timeval time = { 1, 0 };//¼ÓÈëÕâ¸ö²ÎÊıÎªnull ¿ÉÒÔµ±×öÒ»¸ö±ØĞëÒª¿Í»§¶ËÇëÇóµÄ·şÎñÆ÷
-        int ret = select(maxSock + 1, &fdRead, &fdWrite, &fdExcept, &time); //select ĞÔÄÜÆ¿¾± ×î´óµÄ¼¯ºÏÖ»ÓĞ64
+        timeval time = { 1, 0 };//åŠ å…¥è¿™ä¸ªå‚æ•°ä¸ºnull å¯ä»¥å½“åšä¸€ä¸ªå¿…é¡»è¦å®¢æˆ·ç«¯è¯·æ±‚çš„æœåŠ¡å™¨
+        int ret = select(maxSock + 1, &fdRead, &fdWrite, &fdExcept, &time); //select æ€§èƒ½ç“¶é¢ˆ æœ€å¤§çš„é›†åˆåªæœ‰64
         if (ret < 0) {
-            printf("select ½áÊø \n");
+            printf("select ç»“æŸ \n");
             Close();
             return false;
         }
@@ -233,42 +233,42 @@ public:
         return true;
     }
 
-    //ÊÇ·ñ¹¤×÷ÖĞ
+    //æ˜¯å¦å·¥ä½œä¸­
     bool IsRun() {
         return _sock != INVALID_SOCKET;
     }
-    //½ÓÊÕÊı¾İ ´¦ÀíÕ³°ü ²ğ·Ö°ü
+    //æ¥æ”¶æ•°æ® å¤„ç†ç²˜åŒ… æ‹†åˆ†åŒ…
 
-    char _szRevc[REVC_BUFF_SIZE]; //¼ÓÒ»¸ö»º³åÇø
+    char _szRevc[REVC_BUFF_SIZE]; //åŠ ä¸€ä¸ªç¼“å†²åŒº
     int RecvData(ClientSocket* client) {
         _recvCount++;
         auto t1 = _tTime.GetElapsedSecond();
         if (t1 > 1.0) {
-            printf("<sock = %d>, ¿Í»§¶ËÊıÁ¿ = %d, time = %f ,recvCount = %d\n", (int)_sock, (int)_client.size(), t1, _recvCount);
+            printf("<sock = %d>, å®¢æˆ·ç«¯æ•°é‡ = %d, time = %f ,recvCount = %d\n", (int)_sock, (int)_client.size(), t1, _recvCount);
             _recvCount = 0;
             _tTime.Update();
         }
         int nLen = recv(client->GetSocket(), _szRevc, REVC_BUFF_SIZE, 0);
         if (nLen <= 0) {
-            printf("<sock = %d>, ¿Í»§¶ËÒÑ¾­ÍË³ö\n", client->GetSocket());
+            printf("<sock = %d>, å®¢æˆ·ç«¯å·²ç»é€€å‡º\n", client->GetSocket());
             return -1;
         }
 
-        //ÊÕµ½Êı¾İ¼ÓÈë»º³åÇø
+        //æ”¶åˆ°æ•°æ®åŠ å…¥ç¼“å†²åŒº
         memcpy(client->MsgBuf() + client->GetLastPos(), _szRevc, nLen);
-        //ÏûÏ¢»º³åÇøÊı¾İÎ²²¿Ïòºó
+        //æ¶ˆæ¯ç¼“å†²åŒºæ•°æ®å°¾éƒ¨å‘å
         client->SetLastPos(client->GetLastPos() + nLen);
-        //ÅĞ¶ÏÏûÏ¢³¤¶È´óÓÚÏûÏ¢Í·
+        //åˆ¤æ–­æ¶ˆæ¯é•¿åº¦å¤§äºæ¶ˆæ¯å¤´
         while (client->GetLastPos() >= sizeof(DataHeader)) {
-            //µ±Ç°ÏûÏ¢
+            //å½“å‰æ¶ˆæ¯
             DataHeader *hd = (DataHeader*)client->MsgBuf();
             if (client->GetLastPos() >= hd->dataLen) {
                 int msgLen = hd->dataLen;
-                //´¦ÀíÏûÏ¢
+                //å¤„ç†æ¶ˆæ¯
                 OnNetMsg(hd, client->GetSocket());
-                //Êı¾İÇ°ÒÆ
+                //æ•°æ®å‰ç§»
                 memcpy(client->MsgBuf(), client->MsgBuf() + msgLen, client->GetLastPos() - msgLen);
-                //ÏûÏ¢Î²²¿Ç°ÒÆ
+                //æ¶ˆæ¯å°¾éƒ¨å‰ç§»
                 client->SetLastPos(client->GetLastPos() - msgLen);
             } else {
                 break;
@@ -278,10 +278,8 @@ public:
         return 0;
     }
 
-    //ÏìÓ¦ÍøÂçÏûÏ¢
+    //å“åº”ç½‘ç»œæ¶ˆæ¯
     virtual void OnNetMsg(DataHeader* hd, SOCKET cSock) {
-
-
         if (!hd) {
             return;
         }
@@ -308,7 +306,7 @@ public:
         }
     }
 
-    //·¢ËÍÊı¾İ
+    //å‘é€æ•°æ®
     int SendData(DataHeader* hd, SOCKET cSock) {
         if (IsRun() && hd) {
             return send(cSock, (const char*)hd, hd->dataLen, 0);
@@ -316,7 +314,7 @@ public:
         return SOCKET_ERROR;
     }
 
-    //¶ÔËùÓĞÁ¬½ÓÉÏµÄÈË·¢ËÍÊı¾İ
+    //å¯¹æ‰€æœ‰è¿æ¥ä¸Šçš„äººå‘é€æ•°æ®
     void SendData2All(DataHeader* hd) {
         if (IsRun() && hd) {
             for (int i = 0; i < (int)_client.size(); i++) {

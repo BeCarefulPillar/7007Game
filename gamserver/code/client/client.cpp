@@ -2,7 +2,11 @@
 #include "EasyTcpClient.hpp"
 
 bool g_run = true;
-void cmdInput(EasyTcpClient * client) {
+const int cCount = 1000;
+const int tCount = 2;
+EasyTcpClient *client[cCount];
+
+void cmdThread(EasyTcpClient * client) {
     while (true) {
         char cmdMsg[32];
         scanf("%s", cmdMsg);
@@ -28,39 +32,53 @@ void cmdInput(EasyTcpClient * client) {
     }
 }
 
-int main() {
-    
-    const int count = 100;
-    EasyTcpClient *client[count];
-    for (int i = 0; i < count; i++) {
+void sendTheard(int id) {
+    int begin = (int)(id - 1) * cCount / tCount;
+    int end = (int)(id) * cCount / tCount;
+    //防止抢占资源
+    for (int i = begin; i < end; i++) {
         client[i] = new EasyTcpClient();
+    }
+
+    for (int i = begin; i < end; i++) {
         client[i]->Connet("127.0.0.1", 4567);
+        printf("count = %d \n", i);
     }
     //client.InitSocket();
-    
-
-    std::thread t1(cmdInput, client[0]);
-    t1.detach(); //和主线程分离
 
     Login loginData;
     strcpy(loginData.account, "ssss");
     strcpy(loginData.password, "123");
     while (g_run) {
         //client.OnRun();
-
         //test
-        for (int i = 0; i < count; i++) {
+        for (int i = begin; i < end; i++) {
             client[i]->SendData(&loginData);
             //client[i]->OnRun();
         }
-
-        
     }
     //---------------------------
-    for (int i = 0; i < count; i++) {
+    for (int i = begin; i < end; i++) {
         client[i]->Close();
         delete client[i];
     }
+}
+
+int main() {
+
+    std::thread cmd(cmdThread, client[0]);
+    cmd.detach(); //和主线程分离
+
+    for (int i = 0; i < tCount; i++) {
+        std::thread send(sendTheard, i + 1);
+        send.detach(); //和主线程分离
+        //send.join(); //阻塞主线程，这里可以使用
+    }
+
+    while (g_run) {
+        Sleep(1000);
+    }
+
     printf("client out \n");
 
     getchar();
