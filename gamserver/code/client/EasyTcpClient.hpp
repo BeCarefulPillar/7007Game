@@ -163,15 +163,15 @@ public:
         switch (hd->cmd) {
         case CMD_LOGIN_RESULT: {
             LoginResult *loginRes = (LoginResult *)hd;
-            printf("recv CMD_LOGIN_RESULT dataLen = %d, \n", loginRes->dataLen);
+            //printf("recv CMD_LOGIN_RESULT dataLen = %d, \n", loginRes->dataLen);
         } break;
         case CMD_LOGOUT_RESULT: {
             LogoutResult *logoutData = (LogoutResult *)hd;
-            printf("recv CMD_LOGOUT_RESULT dataLen = %d\n", logoutData->dataLen);
+            //printf("recv CMD_LOGOUT_RESULT dataLen = %d\n", logoutData->dataLen);
         }break;
         case CMD_NEW_CLIENT_JOIN: {
             NewClientJoin *newClient = (NewClientJoin *)hd;
-            printf("recv CMD_NEW_CLIENT_JOIN dataLen = %d sock = %d\n", newClient->dataLen, newClient->sock);
+            //printf("recv CMD_NEW_CLIENT_JOIN dataLen = %d sock = %d\n", newClient->dataLen, newClient->sock);
         }break;
         case CMD_ERROR: {
             printf("recv CMD_ERROR dataLen = %d  \n", hd->dataLen);

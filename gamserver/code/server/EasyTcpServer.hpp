@@ -31,6 +31,7 @@
 #include <thread>
 #include <mutex> //锁
 #include <atomic>
+#include <map>
 #include "MessageHeader.hpp"
 #include "CellTimestame.hpp"
 //客户端数据类型
@@ -84,7 +85,7 @@ class CellServer {
 private:
     SOCKET _sock;
     //正式
-    std::vector<ClientSocket *> _client;
+    std::map<SOCKET, ClientSocket *> _client;
     //缓冲
     std::vector<ClientSocket *> _clientBuff;
     std::mutex _mutex;
@@ -96,6 +97,7 @@ public:
         _sock = socket;
         _pThread = nullptr;
         _pNetEvent = nullptr;
+        _clientChange = true;
     }
 
     ~CellServer() {
@@ -128,16 +130,15 @@ public:
             return;
         }
 #ifdef _WIN32
-        //7close-
-        for (int i = 0; i < (int)_client.size(); i++) {
-            closesocket(_client[i]->GetSocket());
-            delete _client[i];
+        for (auto c : _client) {
+            closesocket(c.second->GetSocket());
+            delete c.second;
         }
         //closesocket(_sock);
 #else
-        for (int i = 0; i < (int)_client.size(); i++) {
-            close(_client[i]->GetSocket());
-            delete _client[i];
+        for (auto c : _client) {
+            close(c.second->GetSocket());
+            delete c.second;
         }
         //close(_sock);
 #endif
@@ -145,14 +146,18 @@ public:
         _client.clear();
     }
 
+    fd_set _fdReadBak;
+    bool _clientChange;
+    SOCKET _maxSocket;
     bool OnRun() {
         while (IsRun()) {
             if (!_clientBuff.empty()){
                 std::lock_guard<std::mutex> lock(_mutex);
                 for (auto pClient : _clientBuff){
-                    _client.push_back(pClient);
+                    _client[pClient->GetSocket()] = pClient;
                 }
                 _clientBuff.clear();
+                _clientChange = true;
             }
 
             if (_client.empty()) {
@@ -163,36 +168,70 @@ public:
             fd_set fdRead;
             FD_ZERO(&fdRead);
 
-            int maxSock = _client[0]->GetSocket();
-            for (int i = 0; i < (int)_client.size(); i++) {
-                FD_SET(_client[i]->GetSocket(), &fdRead);
-                if (_client[i]->GetSocket() > _sock) {
-                    maxSock = _client[i]->GetSocket();
+            if (_clientChange) {
+                _clientChange = false;
+                _maxSocket = _client.begin()->second->GetSocket();
+                for (auto c : _client)
+                {
+                    FD_SET(c.first, &fdRead);
+                    if (c.first > _maxSocket) {
+                        _maxSocket = c.first;
+                    }
+                    
                 }
+                memcpy(&_fdReadBak, &fdRead, sizeof(fd_set));
+            } else {
+                memcpy(&fdRead, &_fdReadBak, sizeof(fd_set));
             }
+            
 
-            int ret = select(maxSock + 1, &fdRead, nullptr, nullptr, nullptr); //select 性能瓶颈 最大的集合只有64
+            int ret = select(_maxSocket + 1, &fdRead, nullptr, nullptr, nullptr); //select 性能瓶颈 最大的集合只有64
             if (ret < 0) {
                 printf("select 结束 \n");
                 Close();
                 return false;
+            } else if (ret == 0) {
+                continue;
+            }
+#ifdef WIN32
+            for (int i = 0; i < fdRead.fd_count; i++) {
+                auto iter = _client.find(fdRead.fd_array[i]);
+                if (iter != _client.end()) {
+                    int ret = RecvData(iter->second);
+                    if (ret == -1) {
+                        if (_pNetEvent) {
+                            _pNetEvent->OnNetLevel(iter->second);
+                        }
+                        delete iter->second;
+                        _client.erase(iter->first);
+                        _clientChange = true;
+                    }
+                } else {
+                    printf("error socket \n");
+                }
             }
 
-            for (int i = 0; i < (int)_client.size(); i++) {
-                if (FD_ISSET(_client[i]->GetSocket(), &fdRead)) {
-                    int ret = RecvData(_client[i]);
+#else
+            std::vector <ClientSocket*> temp;
+            for (auto c : _client) {
+                if (FD_ISSET(c.first, &fdRead)) {
+                    int ret = RecvData(c.second);
                     if (ret == -1) {
-                        auto iter = _client.begin() + i;
-                        if (iter != _client.end()) {
-                            if (_pNetEvent) {
-                                _pNetEvent->OnNetLevel(_client[i]);
-                            }
-                            delete _client[i];
-                            _client.erase(iter);
+                        if (_pNetEvent) {
+                            _pNetEvent->OnNetLevel(c.second);
                         }
+                        temp.push_back(c.second);
+                        _clientChange = true;
                     }
                 }
             }
+
+            for (auto client : temp) {
+                _client.erase(client->GetSocket());
+                delete client;
+            }
+#endif // WIN32
+            
         }
         return true;
     }
@@ -459,7 +498,7 @@ public:
             //printf("recv <socket = %d> ,CMD_LOGIN dataLen = %d,account = %s,password=%s \n", cSock, loginData->dataLen, loginData->account, loginData->password);
 
             LoginResult loginRes;
-            pClient->SendData(&loginRes);
+            //pClient->SendData(&loginRes);
         } break;
         case CMD_LOGOUT: {
             Logout *logoutData = (Logout *)pHd;
