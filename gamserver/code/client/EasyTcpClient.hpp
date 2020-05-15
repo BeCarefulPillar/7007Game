@@ -25,9 +25,11 @@
 #include "MessageHeader.hpp"
 class EasyTcpClient {
     SOCKET _sock;
+    bool _isConnect;
 public:
     EasyTcpClient() {
         _sock = INVALID_SOCKET;
+        _isConnect = false;
     }
     virtual ~EasyTcpClient() {
         Close();
@@ -67,6 +69,7 @@ public:
             Close();
             return -1;
         } else {
+            _isConnect = true;
             //printf("<sock = %d> 连接 <%s:%d>成功 \n", (int)_sock, ip, port);
             return 0;
         }
@@ -84,6 +87,7 @@ public:
         close(_sock);
 #endif
         _sock = INVALID_SOCKET;
+        _isConnect = false;
     }
     //运行select
     bool OnRun() {
@@ -114,7 +118,7 @@ public:
     }
 
     bool IsRun() {
-        return _sock != INVALID_SOCKET;
+        return _sock != INVALID_SOCKET && _isConnect;
     }
 
     char _szRevc[REVC_BUFF_SIZE] = {}; //接受缓冲区

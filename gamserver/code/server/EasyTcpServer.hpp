@@ -75,9 +75,9 @@ public:
 //网络事件接口
 class INetEvent {
 public:
-    virtual void OnJoin() = 0;
-    virtual void OnLevel() = 0;
-    virtual void OnRecv() = 0;
+    virtual void OnNetJoin(ClientSocket* pClent) = 0;
+    virtual void OnNetLevel(ClientSocket* pClent) = 0;
+    virtual void OnNetMsg(ClientSocket* pClent, DataHeader* pHd) = 0;
 };
 
 class CellServer {
@@ -185,7 +185,7 @@ public:
                         auto iter = _client.begin() + i;
                         if (iter != _client.end()) {
                             if (_pNetEvent) {
-                                _pNetEvent->OnLevel();
+                                _pNetEvent->OnNetLevel(_client[i]);
                             }
                             delete _client[i];
                             _client.erase(iter);
@@ -219,7 +219,7 @@ public:
             if (client->GetLastPos() >= hd->dataLen) {
                 int msgLen = hd->dataLen;
                 //处理消息
-                OnNetMsg(hd, client);
+                OnNetMsg(client, hd);
                 //数据前移
                 memcpy(client->MsgBuf(), client->MsgBuf() + msgLen, client->GetLastPos() - msgLen);
                 //消息尾部前移
@@ -232,31 +232,9 @@ public:
         return 0;
     }
 
-    virtual void OnNetMsg(DataHeader* hd, ClientSocket* client) {
-        if (!hd) {
-            return;
-        }
-        _pNetEvent->OnRecv();
-        switch (hd->cmd) {
-        case CMD_LOGIN: {
-            Login *loginData = (Login *)hd;
-            //printf("recv <socket = %d> ,CMD_LOGIN dataLen = %d,account = %s,password=%s \n", cSock, loginData->dataLen, loginData->account, loginData->password);
-
-            LoginResult loginRes;
-            client->SendData(&loginRes);
-        } break;
-        case CMD_LOGOUT: {
-            Logout *logoutData = (Logout *)hd;
-            //printf("recv <socket = %d>, CMD_LOGOUT dataLen = %d, account = %s\n", cSock, logoutData->dataLen, logoutData->account);
-
-            //LogoutResult logoutRes;
-
-            //client->SendData(&logoutRes);
-        }break;
-        default: {
-            DataHeader head;
-            client->SendData(&head);
-        }break;
+    virtual void OnNetMsg(ClientSocket* pClient, DataHeader* pHd) {
+        if (pClient && pHd) {
+            _pNetEvent->OnNetMsg(pClient, pHd);
         }
     }
 
@@ -367,7 +345,7 @@ public:
         return cSock;
     }
 
-    void AddClientToCellServer(ClientSocket* pSock) {
+    void AddClientToCellServer(ClientSocket* pClient) {
         auto minSer = _cellServer[0];
         for (auto ser : _cellServer)
         {
@@ -375,8 +353,8 @@ public:
                 minSer = ser;
             }
         }
-        minSer->AddClient(pSock);
-        OnJoin();
+        minSer->AddClient(pClient);
+        OnNetJoin(pClient);
     }
 
     //关闭socket
@@ -462,16 +440,40 @@ public:
         return SOCKET_ERROR;
     }
 
-    virtual void OnJoin() {
+    virtual void OnNetJoin(ClientSocket* pClient) {
         _clientCount++;
     }
 
-    virtual void OnLevel() {
+    virtual void OnNetLevel(ClientSocket* pClient) {
         _clientCount--;
     }
 
-    virtual void OnRecv() {
+    virtual void OnNetMsg(ClientSocket* pClient, DataHeader* pHd) {
         _recvCount++;
+        if (!pHd) {
+            return;
+        }
+        switch (pHd->cmd) {
+        case CMD_LOGIN: {
+            Login *loginData = (Login *)pHd;
+            //printf("recv <socket = %d> ,CMD_LOGIN dataLen = %d,account = %s,password=%s \n", cSock, loginData->dataLen, loginData->account, loginData->password);
+
+            LoginResult loginRes;
+            pClient->SendData(&loginRes);
+        } break;
+        case CMD_LOGOUT: {
+            Logout *logoutData = (Logout *)pHd;
+            //printf("recv <socket = %d>, CMD_LOGOUT dataLen = %d, account = %s\n", cSock, logoutData->dataLen, logoutData->account);
+
+            //LogoutResult logoutRes;
+
+            //pClient->SendData(&logoutRes);
+        }break;
+        default: {
+            DataHeader head;
+            pClient->SendData(&head);
+        }break;
+        }
     }
 
 };
