@@ -54,7 +54,7 @@ void sendTheard(int id) {
         //test
         for (int i = begin; i < end; i++) {
             client[i]->SendData(&loginData);
-            //client[i]->OnRun();
+            client[i]->OnRun();
         }
     }
     //---------------------------
