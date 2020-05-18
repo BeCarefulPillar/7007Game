@@ -1,10 +1,14 @@
 ﻿#include <thread>
+#include <atomic>
 #include "EasyTcpClient.hpp"
+#include "CellTimestame.hpp"
 
 bool g_run = true;
 const int cCount = 1000;
 const int tCount = 4;
 EasyTcpClient *client[cCount];
+std::atomic_int sendCount = 0;
+std::atomic_int readyCount = 0;
 
 void cmdThread(EasyTcpClient * client) {
     while (true) {
@@ -20,12 +24,12 @@ void cmdThread(EasyTcpClient * client) {
             strcpy(loginData.account, "ssss");
             strcpy(loginData.password, "123");
             //5 send
-            client->SendData(&loginData);
+            client->SendData(&loginData, loginData.dataLen);
         } else if (0 == strcmp(cmdMsg, "logout")) {
             Logout logoutData;
             strcpy(logoutData.account, "ssss");
             //5 send
-            client->SendData(&logoutData);
+            client->SendData(&logoutData, logoutData.dataLen);
         } else {
             printf("input error \n");
         }
@@ -44,17 +48,30 @@ void sendTheard(int id) {
         client[i]->Connet("127.0.0.1", 4567);
         printf("count = %d \n", i);
     }
+
+    readyCount++;
+    while (readyCount < tCount)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
+    
     //client.InitSocket();
 
-    Login loginData;
-    strcpy(loginData.account, "ssss");
-    strcpy(loginData.password, "123");
+    Login loginData[10];
+    for (int i = 0; i < 10; i++) {
+        strcpy(loginData[i].account, "ssss");
+        strcpy(loginData[i].password, "123");
+    }
+    int nLen = sizeof(loginData);
     while (g_run) {
         //client.OnRun();
         //test
         for (int i = begin; i < end; i++) {
-            client[i]->SendData(&loginData);
-            //client[i]->OnRun();
+            if (SOCKET_ERROR != client[i]->SendData(loginData, nLen)) {
+                sendCount+=10;
+            }
+            
+            client[i]->OnRun();
         }
     }
     //---------------------------
@@ -82,7 +99,7 @@ void mainSend() {
         //client.OnRun();
         //test
         for (int i = 0; i < cCount; i++) {
-            client[i]->SendData(&loginData);
+            client[i]->SendData(&loginData, loginData.dataLen);
             //client[i]->OnRun();
         }
     }
@@ -104,9 +121,16 @@ int main() {
         //send.join(); //阻塞主线程，这里可以使用
     }
 
-   
+
    // mainSend();
+    CellTimestame _tTime;
     while (g_run) {
+        auto t1 = _tTime.GetElapsedSecond();
+        if (t1 > 1.0) {
+            printf("thread<%d> ,time <%lf>, client <%d>, sendCount<%d>, \n", (int)tCount, t1, (int)cCount, (int)sendCount);
+            _tTime.Update();
+            sendCount = 0;
+        }
         Sleep(1000);
     }
 

@@ -27,7 +27,7 @@ struct Login : public DataHeader {
     };
     char account[32];
     char password[32];
-    char data[900];
+    char data[28];
 };
 
 struct LoginResult : public DataHeader {
@@ -37,7 +37,7 @@ struct LoginResult : public DataHeader {
         result = 0;
     };
     int result;
-    char data[900];
+    char data[88];
 };
 
 struct Logout : public DataHeader {

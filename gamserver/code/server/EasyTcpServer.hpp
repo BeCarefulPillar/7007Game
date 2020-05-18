@@ -79,6 +79,7 @@ public:
     virtual void OnNetJoin(ClientSocket* pClent) = 0;
     virtual void OnNetLevel(ClientSocket* pClent) = 0;
     virtual void OnNetMsg(ClientSocket* pClent, DataHeader* pHd) = 0;
+    virtual void OnNetRecv(ClientSocket* pClent) = 0;
 };
 
 class CellServer {
@@ -91,7 +92,7 @@ private:
     std::mutex _mutex;
     std::thread* _pThread;
     INetEvent* _pNetEvent;
-    char _szRevc[REVC_BUFF_SIZE]; //加一个缓冲区
+    //char _szRevc[REVC_BUFF_SIZE]; //加一个缓冲区
 public:
     CellServer(SOCKET socket = INVALID_SOCKET) {
         _sock = socket;
@@ -242,13 +243,14 @@ public:
 
     //接收数据 处理粘包 拆分包
     int RecvData(ClientSocket* client) {
-        int nLen = recv(client->GetSocket(), _szRevc, REVC_BUFF_SIZE, 0);
+        char* szRevc = client->MsgBuf() + client->GetLastPos();
+        int nLen = recv(client->GetSocket(), szRevc, REVC_BUFF_SIZE * 10 - client->GetLastPos(), 0);
         if (nLen <= 0) {
             return -1;
         }
-
+        _pNetEvent->OnNetRecv(client);
         //收到数据加入缓冲区
-        memcpy(client->MsgBuf() + client->GetLastPos(), _szRevc, nLen);
+        //memcpy(client->MsgBuf() + client->GetLastPos(), _szRevc, nLen);
         //消息缓冲区数据尾部向后
         client->SetLastPos(client->GetLastPos() + nLen);
         //判断消息长度大于消息头
@@ -285,10 +287,12 @@ private:
     std::atomic_int _clientCount; 
     std::vector<CellServer *> _cellServer;//使用指针的原因是栈空间只有1M到2M
     CellTimestame _tTime;
+    std::atomic_int _msgCount;
     std::atomic_int _recvCount;
 public:
     EasyTcpServer() {
         _sock = INVALID_SOCKET;
+        _msgCount = 0;
         _recvCount = 0;
         _clientCount = 0;
     }
@@ -465,9 +469,10 @@ public:
     void Time4Msg() {
         auto t1 = _tTime.GetElapsedSecond();
         if (t1 > 1.0) {
-            printf("thread<%d> ,time <%lf>, socket <%d>, client <%d>, recvCount<%d>\n", (int)_cellServer.size(), t1, (int)_sock, (int)_clientCount, (int)_recvCount);
+            printf("thread<%d> ,time <%lf>, socket <%d>, client <%d>, recvCount<%d>, msg<%d>\n", (int)_cellServer.size(), t1, (int)_sock, (int)_clientCount, (int)_recvCount, (int)_msgCount);
             _tTime.Update();
             _recvCount = 0;
+            _msgCount = 0;
         }
     }
 
@@ -487,8 +492,12 @@ public:
         _clientCount--;
     }
 
-    virtual void OnNetMsg(ClientSocket* pClient, DataHeader* pHd) {
+    virtual void OnNetRecv(ClientSocket* pClient) {
         _recvCount++;
+    }
+
+    virtual void OnNetMsg(ClientSocket* pClient, DataHeader* pHd) {
+        _msgCount++;
         if (!pHd) {
             return;
         }
@@ -498,7 +507,7 @@ public:
             //printf("recv <socket = %d> ,CMD_LOGIN dataLen = %d,account = %s,password=%s \n", cSock, loginData->dataLen, loginData->account, loginData->password);
 
             LoginResult loginRes;
-            //pClient->SendData(&loginRes);
+            pClient->SendData(&loginRes);
         } break;
         case CMD_LOGOUT: {
             Logout *logoutData = (Logout *)pHd;

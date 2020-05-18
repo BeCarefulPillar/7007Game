@@ -121,19 +121,20 @@ public:
         return _sock != INVALID_SOCKET && _isConnect;
     }
 
-    char _szRevc[REVC_BUFF_SIZE] = {}; //接受缓冲区
+    //char _szRevc[REVC_BUFF_SIZE] = {}; //接受缓冲区
     char _szMsgBuf[REVC_BUFF_SIZE * 10] = {}; //第二缓冲区，消息缓冲区
     int _lastPos = 0;//消息缓冲区结尾
     //处理粘包，拆包
     int RecvData() {
-        int nLen = (int)recv(_sock, _szRevc, REVC_BUFF_SIZE, 0);
+        char* szRevc = _szMsgBuf + _lastPos;
+        int nLen = (int)recv(_sock, szRevc, REVC_BUFF_SIZE * 10 - _lastPos, 0);
         if (nLen <= 0) {
             printf("服务器已经关闭 \n");
             Close();
             return -1;
         }
         //收到数据加入缓冲区
-        memcpy(_szMsgBuf + _lastPos, _szRevc, nLen);
+        //memcpy(_szMsgBuf + _lastPos, _szRevc, nLen);
         //消息缓冲区数据尾部向后
         _lastPos += nLen;
         //判断消息长度大于消息头
@@ -182,9 +183,9 @@ public:
         }
     }
 
-    int SendData(DataHeader* hd) {
+    int SendData(DataHeader* hd, int nLen) {
         if (IsRun() && hd) {
-            return send(_sock, (const char*)hd, hd->dataLen, 0);
+            return send(_sock, (const char*)hd, nLen, 0);
         }
         return SOCKET_ERROR;
     }
