@@ -5,7 +5,7 @@
 
 bool g_run = true;
 const int cCount = 1000;
-const int tCount = 2;
+const int tCount = 4;
 EasyTcpClient *client[cCount];
 std::atomic_int sendCount = 0;
 std::atomic_int readyCount = 0;
@@ -71,7 +71,7 @@ void sendTheard(int id) {
             if (SOCKET_ERROR != client[i]->SendData(loginData, nLen)) {
                 sendCount+=msgCount;
             }
-            //client[i]->OnRun();
+            client[i]->OnRun();
         }
 
     }
@@ -95,12 +95,9 @@ int main() {
 
     CellTimestame _tTime;
     while (g_run) {
-//         if (readyCount == tCount) {
-//             for (int i = 0; i < cCount; i++) {
-//                 client[i]->OnRun();
-//             }
-//         }
-//         
+
+
+
 
         auto t1 = _tTime.GetElapsedSecond();
         if (t1 > 1.0) {

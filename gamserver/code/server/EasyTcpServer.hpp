@@ -19,7 +19,7 @@
 #endif
 
 #ifndef REVC_BUFF_SIZE
-#define REVC_BUFF_SIZE 10240
+#define REVC_BUFF_SIZE 10240 * 5
 #endif // !REVC_BUFF_SIZE
 
 #ifndef SEND_BUFF_SIZE
@@ -42,7 +42,7 @@
 class ClientSocket {
 private:
     SOCKET _sock;
-    char _szMsgBuf[REVC_BUFF_SIZE * 10]; //第二缓冲区，消息缓冲区
+    char _szMsgBuf[REVC_BUFF_SIZE]; //第二缓冲区，消息缓冲区
     int _lastPos;//消息缓冲区结尾
     sockaddr_in _addr;
     int _lastSendPos;//消息缓冲区结尾
@@ -74,47 +74,47 @@ public:
     }
 
 // 
-//     int SendData(DataHeader* hd) {
-//         int ret = SOCKET_ERROR;
-//         if (!hd) {
-//             return ret;
-//         }
-// 
-//         //send
-//         ret = send(_sock, (const char *)hd, sizeof(hd), 0);
-//         return ret;
-//     }
+     int SendData(DataHeader* hd) {
+         int ret = SOCKET_ERROR;
+         if (!hd) {
+             return ret;
+         }
+ 
+         //send
+         ret = send(_sock, (const char *)hd, hd->dataLen, 0);
+         return ret;
+     }
 
-    int SendData(DataHeader* hd) {
-        int ret = SOCKET_ERROR;
-        if (!hd) {
-            return ret;
-        }
-        
-        int nSendLen = hd->dataLen;
-        const char* pSendData = (const char*)hd;
-        while (true) {
-            if (_lastSendPos + nSendLen >= SEND_BUFF_SIZE) {
-                int nCopyLen = SEND_BUFF_SIZE - _lastSendPos;
-                memcpy(_szSendBuf + _lastSendPos, pSendData, nCopyLen);
-                //计算剩余数据位置
-                pSendData += nCopyLen;
-                //计算剩余长度
-                nSendLen -= nCopyLen;
-                //send
-                ret = send(_sock, _szSendBuf, SEND_BUFF_SIZE, 0);
-                _lastSendPos = 0;
-                if (SOCKET_ERROR == ret) {
-                    return ret;
-                }
-            } else {
-                memcpy(_szSendBuf + _lastSendPos, pSendData, nSendLen);
-                _lastSendPos += nSendLen;
-                break;
-            }
-        }
-        return ret;
-    }
+    //int SendData(DataHeader* hd) {
+    //    int ret = SOCKET_ERROR;
+    //    if (!hd) {
+    //        return ret;
+    //    }
+    //    
+    //    int nSendLen = hd->dataLen;
+    //    const char* pSendData = (const char*)hd;
+    //    while (true) {
+    //        if (_lastSendPos + nSendLen >= SEND_BUFF_SIZE) {
+    //            int nCopyLen = SEND_BUFF_SIZE - _lastSendPos;
+    //            memcpy(_szSendBuf + _lastSendPos, pSendData, nCopyLen);
+    //            //计算剩余数据位置
+    //            pSendData += nCopyLen;
+    //            //计算剩余长度
+    //            nSendLen -= nCopyLen;
+    //            //send
+    //            ret = send(_sock, _szSendBuf, SEND_BUFF_SIZE, 0);
+    //            _lastSendPos = 0;
+    //            if (SOCKET_ERROR == ret) {
+    //                return ret;
+    //            }
+    //        } else {
+    //            memcpy(_szSendBuf + _lastSendPos, pSendData, nSendLen);
+    //            _lastSendPos += nSendLen;
+    //            break;
+    //        }
+    //    }
+    //    return ret;
+    //}
 };
 
 //网络事件接口
@@ -136,7 +136,6 @@ private:
     std::mutex _mutex;
     std::thread* _pThread;
     INetEvent* _pNetEvent;
-    //char _szRevc[REVC_BUFF_SIZE]; //加一个缓冲区
 public:
     CellServer(SOCKET socket = INVALID_SOCKET) {
         _sock = socket;
@@ -288,13 +287,11 @@ public:
     //接收数据 处理粘包 拆分包
     int RecvData(ClientSocket* client) {
         char* szRevc = client->MsgBuf() + client->GetLastPos();
-        int nLen = recv(client->GetSocket(), szRevc, REVC_BUFF_SIZE * 10 - client->GetLastPos(), 0);
+        int nLen = recv(client->GetSocket(), szRevc, REVC_BUFF_SIZE - client->GetLastPos(), 0);
         if (nLen <= 0) {
             return -1;
         }
         _pNetEvent->OnNetRecv(client);
-        //收到数据加入缓冲区
-        //memcpy(client->MsgBuf() + client->GetLastPos(), _szRevc, nLen);
         //消息缓冲区数据尾部向后
         client->SetLastPos(client->GetLastPos() + nLen);
         //判断消息长度大于消息头
@@ -540,9 +537,10 @@ public:
         switch (pHd->cmd) {
         case CMD_LOGIN: {
             Login *loginData = (Login *)pHd;
-            //printf("recv <socket = %d> ,CMD_LOGIN dataLen = %d,account = %s,password=%s \n", cSock, loginData->dataLen, loginData->account, loginData->password);
+            /*printf("recv <socket = %d> ,CMD_LOGIN dataLen = %d,account = %s,password=%s \n", pClient->GetSocket(), loginData->dataLen, loginData->account, loginData->password);*/
 
             LoginResult loginRes;
+            strcpy(loginRes.data, "ssss");
             pClient->SendData(&loginRes);
         } break;
         case CMD_LOGOUT: {

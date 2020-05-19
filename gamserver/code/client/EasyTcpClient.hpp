@@ -18,7 +18,7 @@
 #endif
 
 #ifndef REVC_BUFF_SIZE
-#define REVC_BUFF_SIZE 10240
+#define REVC_BUFF_SIZE 10240 * 5
 #endif // !REVC_BUFF_SIZE
 
 #include <stdio.h>
@@ -121,13 +121,12 @@ public:
         return _sock != INVALID_SOCKET && _isConnect;
     }
 
-    //char _szRevc[REVC_BUFF_SIZE] = {}; //接受缓冲区
-    char _szMsgBuf[REVC_BUFF_SIZE * 10] = {}; //第二缓冲区，消息缓冲区
+    char _szMsgBuf[REVC_BUFF_SIZE] = {}; //第二缓冲区，消息缓冲区
     int _lastPos = 0;//消息缓冲区结尾
     //处理粘包，拆包
     int RecvData() {
         char* szRevc = _szMsgBuf + _lastPos;
-        int nLen = (int)recv(_sock, szRevc, REVC_BUFF_SIZE * 10 - _lastPos, 0);
+        int nLen = (int)recv(_sock, szRevc, REVC_BUFF_SIZE - _lastPos, 0);
         if (nLen <= 0) {
             printf("服务器已经关闭 \n");
             Close();
@@ -164,7 +163,7 @@ public:
         switch (hd->cmd) {
         case CMD_LOGIN_RESULT: {
             LoginResult *loginRes = (LoginResult *)hd;
-            //printf("recv CMD_LOGIN_RESULT dataLen = %d, \n", loginRes->dataLen);
+            //printf("recv CMD_LOGIN_RESULT dataLen = %d, %s \n", loginRes->dataLen, loginRes->data);
         } break;
         case CMD_LOGOUT_RESULT: {
             LogoutResult *logoutData = (LogoutResult *)hd;
