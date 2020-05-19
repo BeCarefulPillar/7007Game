@@ -5,7 +5,7 @@
 
 bool g_run = true;
 const int cCount = 1000;
-const int tCount = 4;
+const int tCount = 2;
 EasyTcpClient *client[cCount];
 std::atomic_int sendCount = 0;
 std::atomic_int readyCount = 0;
@@ -56,9 +56,10 @@ void sendTheard(int id) {
     }
     
     //client.InitSocket();
+    const int msgCount = 1;
+    Login loginData[msgCount];
 
-    Login loginData[10];
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < msgCount; i++) {
         strcpy(loginData[i].account, "ssss");
         strcpy(loginData[i].password, "123");
     }
@@ -68,43 +69,14 @@ void sendTheard(int id) {
         //test
         for (int i = begin; i < end; i++) {
             if (SOCKET_ERROR != client[i]->SendData(loginData, nLen)) {
-                sendCount+=10;
+                sendCount+=msgCount;
             }
-            
-            client[i]->OnRun();
+            //client[i]->OnRun();
         }
+
     }
     //---------------------------
     for (int i = begin; i < end; i++) {
-        client[i]->Close();
-        delete client[i];
-    }
-}
-
-void mainSend() {
-    for (int i = 0; i < cCount; i++) {
-        client[i] = new EasyTcpClient();
-    }
-
-    for (int i = 0; i < cCount; i++) {
-        client[i]->Connet("127.0.0.1", 4567);
-        printf("count = %d \n", i);
-    }
-    //client.InitSocket();
-
-    Login loginData;
-    strcpy(loginData.account, "ssss");
-    strcpy(loginData.password, "123");
-    while (g_run) {
-        //client.OnRun();
-        //test
-        for (int i = 0; i < cCount; i++) {
-            client[i]->SendData(&loginData, loginData.dataLen);
-            //client[i]->OnRun();
-        }
-    }
-    //---------------------------
-    for (int i = 0; i < cCount; i++) {
         client[i]->Close();
         delete client[i];
     }
@@ -121,10 +93,15 @@ int main() {
         //send.join(); //阻塞主线程，这里可以使用
     }
 
-
-   // mainSend();
     CellTimestame _tTime;
     while (g_run) {
+//         if (readyCount == tCount) {
+//             for (int i = 0; i < cCount; i++) {
+//                 client[i]->OnRun();
+//             }
+//         }
+//         
+
         auto t1 = _tTime.GetElapsedSecond();
         if (t1 > 1.0) {
             printf("thread<%d> ,time <%lf>, client <%d>, sendCount<%d>, \n", (int)tCount, t1, (int)cCount, (int)sendCount);

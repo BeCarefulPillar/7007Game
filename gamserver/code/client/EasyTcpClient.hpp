@@ -98,7 +98,7 @@ public:
         FD_ZERO(&fdRead);
         FD_SET(_sock, &fdRead);
 
-        timeval t = { 1,0 };
+        timeval t = { 0, 10 };
         int ret = select((int)_sock + 1, &fdRead, 0, 0, &t);
         if (ret < 0) {
             printf("客户端关闭1 \n");

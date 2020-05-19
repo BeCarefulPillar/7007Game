@@ -22,6 +22,10 @@
 #define REVC_BUFF_SIZE 10240
 #endif // !REVC_BUFF_SIZE
 
+#ifndef SEND_BUFF_SIZE
+#define SEND_BUFF_SIZE 10240
+#endif // !SEND_BUFF_SIZE
+
 #ifndef CELL_SERVER_THEARD
 #define CELL_SERVER_THEARD 4
 #endif
@@ -41,11 +45,15 @@ private:
     char _szMsgBuf[REVC_BUFF_SIZE * 10]; //第二缓冲区，消息缓冲区
     int _lastPos;//消息缓冲区结尾
     sockaddr_in _addr;
+    int _lastSendPos;//消息缓冲区结尾
+    char _szSendBuf[SEND_BUFF_SIZE];
 public:
     ClientSocket(SOCKET sock, sockaddr_in addr) {
         _sock = sock;
         _lastPos = 0;
+        _lastSendPos = 0;
         memset(_szMsgBuf, 0, sizeof(_szMsgBuf));
+        memset(_szSendBuf, 0, sizeof(_szSendBuf));
         _addr = addr;
     }
     
@@ -65,11 +73,47 @@ public:
         _lastPos = lastPos;
     }
 
+// 
+//     int SendData(DataHeader* hd) {
+//         int ret = SOCKET_ERROR;
+//         if (!hd) {
+//             return ret;
+//         }
+// 
+//         //send
+//         ret = send(_sock, (const char *)hd, sizeof(hd), 0);
+//         return ret;
+//     }
+
     int SendData(DataHeader* hd) {
-        if (hd) {
-            return send(_sock, (const char*)hd, hd->dataLen, 0);
+        int ret = SOCKET_ERROR;
+        if (!hd) {
+            return ret;
         }
-        return SOCKET_ERROR;
+        
+        int nSendLen = hd->dataLen;
+        const char* pSendData = (const char*)hd;
+        while (true) {
+            if (_lastSendPos + nSendLen >= SEND_BUFF_SIZE) {
+                int nCopyLen = SEND_BUFF_SIZE - _lastSendPos;
+                memcpy(_szSendBuf + _lastSendPos, pSendData, nCopyLen);
+                //计算剩余数据位置
+                pSendData += nCopyLen;
+                //计算剩余长度
+                nSendLen -= nCopyLen;
+                //send
+                ret = send(_sock, _szSendBuf, SEND_BUFF_SIZE, 0);
+                _lastSendPos = 0;
+                if (SOCKET_ERROR == ret) {
+                    return ret;
+                }
+            } else {
+                memcpy(_szSendBuf + _lastSendPos, pSendData, nSendLen);
+                _lastSendPos += nSendLen;
+                break;
+            }
+        }
+        return ret;
     }
 };
 
@@ -281,7 +325,7 @@ public:
 
 };
 
-class EasyTcpServer:public INetEvent {
+class EasyTcpServer: public INetEvent {
 private:
     SOCKET _sock;
     std::atomic_int _clientCount; 
@@ -474,14 +518,6 @@ public:
             _recvCount = 0;
             _msgCount = 0;
         }
-    }
-
-    //发送数据
-    int SendData(DataHeader* hd, SOCKET cSock) {
-        if (IsRun() && hd) {
-            return send(cSock, (const char*)hd, hd->dataLen, 0);
-        }
-        return SOCKET_ERROR;
     }
 
     virtual void OnNetJoin(ClientSocket* pClient) {
