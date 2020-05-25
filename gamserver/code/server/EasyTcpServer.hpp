@@ -38,6 +38,7 @@
 #include <map>
 #include "MessageHeader.hpp"
 #include "CellTimestame.hpp"
+#include "CellTask.hpp"
 //客户端数据类型
 class ClientSocket {
 private:
@@ -73,57 +74,67 @@ public:
         _lastPos = lastPos;
     }
 
-// 
-     int SendData(DataHeader* hd) {
-         int ret = SOCKET_ERROR;
-         if (!hd) {
-             return ret;
-         }
- 
-         //send
-         ret = send(_sock, (const char *)hd, hd->dataLen, 0);
-         return ret;
-     }
-
-    //int SendData(DataHeader* hd) {
-    //    int ret = SOCKET_ERROR;
-    //    if (!hd) {
-    //        return ret;
-    //    }
-    //    
-    //    int nSendLen = hd->dataLen;
-    //    const char* pSendData = (const char*)hd;
-    //    while (true) {
-    //        if (_lastSendPos + nSendLen >= SEND_BUFF_SIZE) {
-    //            int nCopyLen = SEND_BUFF_SIZE - _lastSendPos;
-    //            memcpy(_szSendBuf + _lastSendPos, pSendData, nCopyLen);
-    //            //计算剩余数据位置
-    //            pSendData += nCopyLen;
-    //            //计算剩余长度
-    //            nSendLen -= nCopyLen;
-    //            //send
-    //            ret = send(_sock, _szSendBuf, SEND_BUFF_SIZE, 0);
-    //            _lastSendPos = 0;
-    //            if (SOCKET_ERROR == ret) {
-    //                return ret;
-    //            }
-    //        } else {
-    //            memcpy(_szSendBuf + _lastSendPos, pSendData, nSendLen);
-    //            _lastSendPos += nSendLen;
-    //            break;
-    //        }
-    //    }
-    //    return ret;
-    //}
+    int SendData(DataHeader* hd) {
+        int ret = SOCKET_ERROR;
+        if (!hd) {
+            return ret;
+        }
+        
+        int nSendLen = hd->dataLen;
+        const char* pSendData = (const char*)hd;
+        while (true) {
+            if (_lastSendPos + nSendLen >= SEND_BUFF_SIZE) {
+                int nCopyLen = SEND_BUFF_SIZE - _lastSendPos;
+                memcpy(_szSendBuf + _lastSendPos, pSendData, nCopyLen);
+                //计算剩余数据位置
+                pSendData += nCopyLen;
+                //计算剩余长度
+                nSendLen -= nCopyLen;
+                //send
+                ret = send(_sock, _szSendBuf, SEND_BUFF_SIZE, 0);
+                _lastSendPos = 0;
+                if (SOCKET_ERROR == ret) {
+                    return ret;
+                }
+            } else {
+                memcpy(_szSendBuf + _lastSendPos, pSendData, nSendLen);
+                _lastSendPos += nSendLen;
+                break;
+            }
+        }
+        return ret;
+    }
 };
 
+class CellServer;
 //网络事件接口
 class INetEvent {
 public:
     virtual void OnNetJoin(ClientSocket* pClent) = 0;
     virtual void OnNetLevel(ClientSocket* pClent) = 0;
-    virtual void OnNetMsg(ClientSocket* pClent, DataHeader* pHd) = 0;
+    virtual void OnNetMsg(CellServer* pCellServer, ClientSocket* pClent, DataHeader* pHd) = 0;
     virtual void OnNetRecv(ClientSocket* pClent) = 0;
+};
+
+class CellSenMsg2ClienTask : public CellTask{
+    ClientSocket* _pClient;
+    DataHeader* _pHeader;
+public:
+    CellSenMsg2ClienTask(ClientSocket* pClient, DataHeader* pHd) {
+        _pClient = pClient;
+        _pHeader = pHd;
+    }
+    ~CellSenMsg2ClienTask() {
+
+    }
+
+    virtual void DoTask() {
+        _pClient->SendData(_pHeader);
+        delete _pHeader;
+    }
+
+private:
+
 };
 
 class CellServer {
@@ -136,6 +147,7 @@ private:
     std::mutex _mutex;
     std::thread* _pThread;
     INetEvent* _pNetEvent;
+    CellTaskServer _taskServer;
 public:
     CellServer(SOCKET socket = INVALID_SOCKET) {
         _sock = socket;
@@ -148,6 +160,10 @@ public:
         Close();
         _sock = INVALID_SOCKET;
         delete _pThread;
+    }
+    void AddSendTask(ClientSocket* pClient, DataHeader* pHd) {
+        CellSenMsg2ClienTask *task = new CellSenMsg2ClienTask(pClient, pHd);
+        _taskServer.AddTask(task);
     }
 
     void SetNetObj(INetEvent* event) {
@@ -166,6 +182,7 @@ public:
     void Start() {
         _pThread = new std::thread(std::mem_fn(&CellServer::OnRun), this); //成员函数转函数对象，使用对象指针或引用进行绑定
         _pThread->detach();
+        _taskServer.Start();
     }
 
     //关闭socket
@@ -316,7 +333,7 @@ public:
 
     virtual void OnNetMsg(ClientSocket* pClient, DataHeader* pHd) {
         if (pClient && pHd) {
-            _pNetEvent->OnNetMsg(pClient, pHd);
+            _pNetEvent->OnNetMsg(this, pClient, pHd);
         }
     }
 
@@ -529,7 +546,7 @@ public:
         _recvCount++;
     }
 
-    virtual void OnNetMsg(ClientSocket* pClient, DataHeader* pHd) {
+    virtual void OnNetMsg(CellServer* pCellServer ,ClientSocket* pClient, DataHeader* pHd) {
         _msgCount++;
         if (!pHd) {
             return;
@@ -539,9 +556,8 @@ public:
             Login *loginData = (Login *)pHd;
             /*printf("recv <socket = %d> ,CMD_LOGIN dataLen = %d,account = %s,password=%s \n", pClient->GetSocket(), loginData->dataLen, loginData->account, loginData->password);*/
 
-            LoginResult loginRes;
-            strcpy(loginRes.data, "ssss");
-            pClient->SendData(&loginRes);
+            LoginResult* loginRes =new LoginResult();
+            pCellServer->AddSendTask(pClient, loginRes);
         } break;
         case CMD_LOGOUT: {
             Logout *logoutData = (Logout *)pHd;
