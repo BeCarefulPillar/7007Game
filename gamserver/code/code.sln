@@ -7,10 +7,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "server", "server\server.vcx
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "client", "client\client.vcxproj", "{806374FB-99F9-4BEF-B8A6-7D394B538777}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Memory", "Memory\Memory.vcxproj", "{F1726669-7953-4643-B161-F1B98E8336AF}"
+EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86
@@ -34,11 +33,22 @@ Global
 		{806374FB-99F9-4BEF-B8A6-7D394B538777}.Release|x64.Build.0 = Release|x64
 		{806374FB-99F9-4BEF-B8A6-7D394B538777}.Release|x86.ActiveCfg = Release|Win32
 		{806374FB-99F9-4BEF-B8A6-7D394B538777}.Release|x86.Build.0 = Release|Win32
+		{F1726669-7953-4643-B161-F1B98E8336AF}.Debug|x64.ActiveCfg = Debug|x64
+		{F1726669-7953-4643-B161-F1B98E8336AF}.Debug|x64.Build.0 = Debug|x64
+		{F1726669-7953-4643-B161-F1B98E8336AF}.Debug|x86.ActiveCfg = Debug|Win32
+		{F1726669-7953-4643-B161-F1B98E8336AF}.Debug|x86.Build.0 = Debug|Win32
+		{F1726669-7953-4643-B161-F1B98E8336AF}.Release|x64.ActiveCfg = Release|x64
+		{F1726669-7953-4643-B161-F1B98E8336AF}.Release|x64.Build.0 = Release|x64
+		{F1726669-7953-4643-B161-F1B98E8336AF}.Release|x86.ActiveCfg = Release|Win32
+		{F1726669-7953-4643-B161-F1B98E8336AF}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {97DA39D9-8552-4B0D-ADC1-B7F58386A3EF}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

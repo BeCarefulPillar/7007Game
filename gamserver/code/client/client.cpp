@@ -95,10 +95,6 @@ int main() {
 
     CellTimestame _tTime;
     while (g_run) {
-
-
-
-
         auto t1 = _tTime.GetElapsedSecond();
         if (t1 > 1.0) {
             printf("thread<%d> ,time <%lf>, client <%d>, sendCount<%d>, \n", (int)tCount, t1, (int)cCount, (int)sendCount);
