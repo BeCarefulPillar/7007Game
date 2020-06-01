@@ -166,6 +166,7 @@
     <ClCompile Include="server.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CellTask.hpp" />
     <ClInclude Include="CellTimestame.hpp" />
     <ClInclude Include="EasyTcpServer.hpp" />
     <ClInclude Include="MessageHeader.hpp" />
