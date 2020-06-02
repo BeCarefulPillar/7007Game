@@ -1,38 +1,18 @@
 #include "Alloctor.h"
-#include <stdlib.h>
+#include "MemoryMgr.hpp"
 #include <stdio.h>
-void* operator new[](size_t size) {
-    void* pM = malloc(size);
-    if (!pM){
-        printf("error \n");
-    }
-    return pM;
+void* operator new[](size_t nSize) {
+    return MemoryMgr::Instance().AllocMem(nSize);
 }
 
 void operator delete[](void* p) {
-    free(p);
+    return MemoryMgr::Instance().FreeMem(p);
 }
 
-void* operator new(size_t size) {
-    void* pM = malloc(size);
-    if (!pM) {
-        printf("error \n");
-    }
-    return pM;
+void* operator new(size_t nSize) {
+    return MemoryMgr::Instance().AllocMem(nSize);
 }
 
 void operator delete(void* p) {
-    free(p);
-}
-
-void* mem_alloc(size_t size) {
-    void* pM = malloc(size);
-    if (!pM) {
-        printf("error \n");
-    }
-    return pM;
-}
-
-void mem_free(void* p) {
-    free(p);
+    return MemoryMgr::Instance().FreeMem(p);
 }
