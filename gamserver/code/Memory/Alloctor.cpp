@@ -6,7 +6,7 @@ void* operator new[](size_t nSize) {
 }
 
 void operator delete[](void* p) {
-    return MemoryMgr::Instance().FreeMem(p);
+    MemoryMgr::Instance().FreeMem(p);
 }
 
 void* operator new(size_t nSize) {
@@ -14,5 +14,5 @@ void* operator new(size_t nSize) {
 }
 
 void operator delete(void* p) {
-    return MemoryMgr::Instance().FreeMem(p);
+    MemoryMgr::Instance().FreeMem(p);
 }
