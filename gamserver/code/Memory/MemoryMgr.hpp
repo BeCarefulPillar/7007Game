@@ -3,11 +3,11 @@
 #include <stdlib.h>
 class MemoryBlock {
 private:
-    bool _bPool = false;
     size_t _nId = 0;
     size_t _nRef = 0;
     MemoryAlloc* _pAlloc;
     MemoryBlock* _pNext;
+    bool _bPool = false;
 
 public:
     MemoryBlock() {
@@ -23,7 +23,7 @@ class MemoryAlloc {
 private:
     size_t _nBlockNum;
     size_t _nSize;
-    MemoryAlloc* _pBuf;
+    char* _pBuf;
     MemoryBlock* _pHead;
 public:    
     MemoryAlloc() {
