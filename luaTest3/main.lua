@@ -1,17 +1,7 @@
+local json =  require "json"
 local uihelper =  require "uihelper"
-print(14.3 % 2.2)
+local result = {sns = "facebook",
+                sns_user_id=999000199,
+                time = 1591693079}
 
-local aa = {}
-
-local function call()
-    for _,v in ipairs(aa) do
-        v()
-    end
-    -- body
-end
-
-table.insert(aa, function ()
-    print("1111")
-end)
-
-call()
+print(uihelper.encodeBase64(json.encode(result))) 

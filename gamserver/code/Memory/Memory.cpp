@@ -2,10 +2,13 @@
 
 int main()
 {
-//     char* a = new char(256);
-//     delete(a);
-//     int* b = new int[256];
-//     delete(b);
+    char* b = new char[12];
+    char* c = new char;
+    delete[] b;
+    char* a = new char[5];
+    delete[] a;
+    delete(c);
+
 //     std::cout << "Hello World!\n";
     return 0;
 }
