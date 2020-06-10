@@ -5,10 +5,12 @@ int main()
     char* b = new char[12];
     char* c = new char;
     delete[] b;
-    char* a = new char[5];
+    char* a = new char[4];
     delete[] a;
-    delete(c);
+    delete c;
 
-//     std::cout << "Hello World!\n";
+    *a = 4;
+
+    //     std::cout << "Hello World!\n";
     return 0;
 }

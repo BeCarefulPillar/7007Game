@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <mutex>
 
-#define MAX_MEMORY_SIZE 1024
+#define MAX_MEMORY_SIZE 128
 class MemoryAlloc;
 
 class MemoryBlock {
@@ -139,20 +139,14 @@ public:
 
 class MemoryMgr {
 private:
-    MemoryAlloctor<64, 10>_mem64;
-    MemoryAlloctor<128, 10>_mem128;
-    MemoryAlloctor<256, 10>_mem256;
-    MemoryAlloctor<512, 10>_mem512;
-    MemoryAlloctor<1024, 10>_mem1024;
+    MemoryAlloctor<64, 1000000>_mem64;
+    MemoryAlloctor<128, 1000000>_mem128;
     MemoryAlloc* _szAlloc[MAX_MEMORY_SIZE + 1];//ÄÚ´æ³ØÓ³ÉäÊý×é
    //MemoryAlloctor<128, 10>_mem64;
 private:
     MemoryMgr() {
         init_szAlloc(0, 64, &_mem64);
-        init_szAlloc(65, 128, &_mem64);
-        init_szAlloc(129, 256, &_mem64);
-        init_szAlloc(257, 512, &_mem64);
-        init_szAlloc(513, 1024, &_mem64);
+        init_szAlloc(65, 128, &_mem128);
     }
 
     ~MemoryMgr() {

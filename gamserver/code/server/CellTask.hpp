@@ -30,6 +30,7 @@ private:
     std::list<CellTask*> _tasksBuf;
 
     std::mutex _mutex;
+    bool _isRun = true;
 public:
     CellTaskServer() {
 
@@ -38,7 +39,7 @@ public:
 
     }
 
-    void AddTask(CellTask * task) {
+    void AddTask(CellTask* task) {
         std::lock_guard<std::mutex> lock(_mutex);
         _tasksBuf.push_back(task);
     }
@@ -47,9 +48,13 @@ public:
         std::thread t(std::mem_fn(&CellTaskServer::OnRun), this);
         t.detach();
     }
+
+    void Stop() {
+        _isRun = false;
+    }
 private:
     void OnRun() {
-        while (true) {
+        while (_isRun) {
             if (!_tasksBuf.empty()) {
                 std::lock_guard<std::mutex> lock(_mutex);
                 for (auto pTask : _tasksBuf) {

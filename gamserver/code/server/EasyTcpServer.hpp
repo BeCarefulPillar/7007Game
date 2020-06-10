@@ -148,17 +148,20 @@ private:
     std::thread* _pThread;
     INetEvent* _pNetEvent;
     CellTaskServer _taskServer;
+    fd_set _fdReadBak;
+    bool _clientChange;
+    SOCKET _maxSocket;
 public:
-    CellServer(SOCKET socket = INVALID_SOCKET) {
+    CellServer(SOCKET& socket) {
         _sock = socket;
         _pThread = nullptr;
         _pNetEvent = nullptr;
-        _clientChange = true;
+        _clientChange = false;
     }
 
     ~CellServer() {
+        _taskServer.Stop();
         Close();
-        _sock = INVALID_SOCKET;
         delete _pThread;
     }
     void AddSendTask(ClientSocket* pClient, DataHeader* pHd) {
@@ -203,15 +206,12 @@ public:
         }
         //close(_sock);
 #endif
-        _sock = INVALID_SOCKET;
         _client.clear();
     }
 
-    fd_set _fdReadBak;
-    bool _clientChange;
-    SOCKET _maxSocket;
     bool OnRun() {
         while (IsRun()) {
+            auto a = IsRun();
             if (!_clientBuff.empty()){
                 std::lock_guard<std::mutex> lock(_mutex);
                 for (auto pClient : _clientBuff){
@@ -463,10 +463,6 @@ public:
         if (INVALID_SOCKET == _sock) {
             return;
         }
-        for (int i = 0; i < (int)_cellServer.size(); i++) {
-            delete _cellServer[i];
-        }
-        _cellServer.clear();
 
 #ifdef _WIN32
         
@@ -477,6 +473,10 @@ public:
         close(_sock);
 #endif
         _sock = INVALID_SOCKET;
+        for (int i = 0; i < (int)_cellServer.size(); i++) {
+            delete _cellServer[i];
+    }
+        _cellServer.clear();
     }
     //处理网络消息
     bool OnRun() {
