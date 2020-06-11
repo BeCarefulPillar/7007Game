@@ -97,7 +97,7 @@ public:
             pReturn->_nRef = 1;
         }
         
-        printf("malloc = %x, id = %d, size = %d \n", pReturn, pReturn->_nId, nSize);
+        //printf("malloc = %x, id = %d, size = %d \n", pReturn, pReturn->_nId, nSize);
         return ((char*)pReturn + sizeof(MemoryBlock));
     }
 
@@ -106,7 +106,7 @@ public:
         MemoryBlock* pBlock =(MemoryBlock*)(pData - sizeof(MemoryBlock));
         assert(1 == pBlock->_nRef);
 
-        printf("free = %x, id = %d\n", pBlock, pBlock->_nId);
+        //printf("free = %x, id = %d\n", pBlock, pBlock->_nId);
         if (pBlock->_bPool) {
             std::lock_guard<std::mutex> lg(_mutex);
             if (--pBlock->_nRef != 0) {

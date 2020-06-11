@@ -152,7 +152,7 @@ private:
     bool _clientChange;
     SOCKET _maxSocket;
 public:
-    CellServer(SOCKET& socket) {
+    CellServer(SOCKET socket) {
         _sock = socket;
         _pThread = nullptr;
         _pNetEvent = nullptr;
@@ -207,6 +207,7 @@ public:
         //close(_sock);
 #endif
         _client.clear();
+        _sock = INVALID_SOCKET;
     }
 
     bool OnRun() {
@@ -237,14 +238,11 @@ public:
                     FD_SET(c.first, &fdRead);
                     if (c.first > _maxSocket) {
                         _maxSocket = c.first;
-                    }
-                    
-                }
+                    }                }
                 memcpy(&_fdReadBak, &fdRead, sizeof(fd_set));
             } else {
                 memcpy(&fdRead, &_fdReadBak, sizeof(fd_set));
             }
-            
 
             int ret = select(_maxSocket + 1, &fdRead, nullptr, nullptr, nullptr); //select 性能瓶颈 最大的集合只有64
             if (ret < 0) {
@@ -463,9 +461,11 @@ public:
         if (INVALID_SOCKET == _sock) {
             return;
         }
-
+        for (int i = 0; i < (int)_cellServer.size(); i++) {
+            delete _cellServer[i];
+        }
+        _cellServer.clear();
 #ifdef _WIN32
-        
         //7close-
         closesocket(_sock);
         WSACleanup();
@@ -473,10 +473,6 @@ public:
         close(_sock);
 #endif
         _sock = INVALID_SOCKET;
-        for (int i = 0; i < (int)_cellServer.size(); i++) {
-            delete _cellServer[i];
-    }
-        _cellServer.clear();
     }
     //处理网络消息
     bool OnRun() {
