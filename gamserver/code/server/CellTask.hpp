@@ -22,12 +22,13 @@ private:
 
 };
 
+typedef std::shared_ptr<CellTask> CellTaskPtr;
 class CellTaskServer {
 private:
-    //Êı¾İ
-    std::list<CellTask*> _tasks;
-    //»º³å
-    std::list<CellTask*> _tasksBuf;
+    //æ•°æ®
+    std::list<CellTaskPtr> _tasks;
+    //ç¼“å†²
+    std::list<CellTaskPtr> _tasksBuf;
 
     std::mutex _mutex;
     bool _isRun = true;
@@ -39,7 +40,7 @@ public:
 
     }
 
-    void AddTask(CellTask* task) {
+    void AddTask(CellTaskPtr& task) {
         std::lock_guard<std::mutex> lock(_mutex);
         _tasksBuf.push_back(task);
     }
@@ -69,7 +70,6 @@ private:
             }
             for (auto pTask : _tasks) {
                 pTask->DoTask();
-                delete pTask;
             }
             _tasks.clear();
         }

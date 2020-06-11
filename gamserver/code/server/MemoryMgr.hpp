@@ -91,6 +91,7 @@ public:
             pReturn->_nRef = 1;
             pReturn->_pAlloc = nullptr;
             pReturn->_pNext = nullptr;
+            printf("malloc = %x, id = %d, size = %d \n", pReturn, pReturn->_nId, nSize);
         } else {
             pReturn = _pHeader;
             _pHeader = _pHeader->_pNext;
@@ -174,7 +175,7 @@ public:
             pReturn->_nRef = 1;
             pReturn->_pAlloc = nullptr;
             pReturn->_pNext = nullptr;
-            printf("malloc = %x, id = %d, size = %d \n", pReturn, pReturn->_nId, nSize);
+            //printf("malloc = %x, id = %d, size = %d \n", pReturn, pReturn->_nId, nSize);
             void* a = (char*)pReturn + sizeof(MemoryBlock);
             return ((char*)pReturn + sizeof(MemoryBlock));
         }
@@ -188,7 +189,7 @@ public:
             pBlock->_pAlloc->FreeMemory(pMem);
         } else {
             if (--pBlock->_nRef == 0) {
-                printf("free = %x, id = %d \n", pBlock, pBlock->_nId);
+                //printf("free = %x, id = %d \n", pBlock, pBlock->_nId);
                 free(pBlock);
             }
         }
