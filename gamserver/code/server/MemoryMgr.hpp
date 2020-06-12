@@ -51,8 +51,9 @@ public:
         if (_pBuf){
             return;
         }
+        size_t nRealSize = _nSize + sizeof(MemoryBlock);
         //计算内存池的大小
-        size_t bufSize = (_nSize + sizeof(MemoryBlock)) * _nBlockNum;
+        size_t bufSize = nRealSize * _nBlockNum;
         //向系统申请内存
         _pBuf = (char*)malloc(bufSize);
         //初始化内存池
@@ -65,7 +66,7 @@ public:
 
         MemoryBlock* pTemp2 = _pHeader;
         for (size_t i = 1; i < _nBlockNum; i++) {
-            MemoryBlock* pTemp = (MemoryBlock*)(_pBuf + i * (_nSize + sizeof(MemoryBlock)));
+            MemoryBlock* pTemp = (MemoryBlock*)(_pBuf + i * nRealSize);
             pTemp->_bPool = true;
             pTemp->_nId = i;
             pTemp->_nRef = 0;

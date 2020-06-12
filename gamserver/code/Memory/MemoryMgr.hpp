@@ -52,7 +52,8 @@ public:
             return;
         }
         //计算内存池的大小
-        size_t bufSize = (_nSize + sizeof(MemoryBlock)) * _nBlockNum;
+        size_t realSize = _nSize + sizeof(MemoryBlock);
+        size_t bufSize = realSize * _nBlockNum;
         //向系统申请内存
         _pBuf = (char*)malloc(bufSize);
         //初始化内存池
@@ -65,7 +66,7 @@ public:
 
         MemoryBlock* pTemp2 = _pHeader;
         for (size_t i = 1; i < _nBlockNum; i++) {
-            MemoryBlock* pTemp = (MemoryBlock*)(_pBuf + i * (_nSize + sizeof(MemoryBlock)));
+            MemoryBlock* pTemp = (MemoryBlock*)(_pBuf + i * realSize);
             pTemp->_bPool = true;
             pTemp->_nId = i;
             pTemp->_nRef = 0;
@@ -75,6 +76,7 @@ public:
             pTemp2->_pNext = pTemp;
             pTemp2 = pTemp;
         }
+        printf("initMemory");
     }
 
     void* AllocMemory(size_t nSize) {
@@ -149,10 +151,10 @@ private:
 private:
     MemoryMgr() {
         init_szAlloc(0, 64, &_mem64);
-        init_szAlloc(65, 128, &_mem64);
-        init_szAlloc(129, 256, &_mem64);
-        init_szAlloc(257, 512, &_mem64);
-        init_szAlloc(513, 1024, &_mem64);
+        init_szAlloc(65, 128, &_mem128);
+        init_szAlloc(129, 256, &_mem256);
+        init_szAlloc(257, 512, &_mem512);
+        init_szAlloc(513, 1024, &_mem1024);
     }
 
     ~MemoryMgr() {

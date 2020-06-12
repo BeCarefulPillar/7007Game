@@ -40,11 +40,12 @@
 #include "MessageHeader.hpp"
 #include "CellTimestame.hpp"
 #include "CellTask.hpp"
+#include "CellObjPool.hpp"
 //客户端数据类型
 
 typedef std::shared_ptr<DataHeader> DataHeaderPtr;
 
-class ClientSocket {
+class ClientSocket: public ObjectPoolBase<ClientSocket, 1000> {
 private:
     SOCKET _sock;
     char _szMsgBuf[REVC_BUFF_SIZE]; //第二缓冲区，消息缓冲区
@@ -436,7 +437,7 @@ public:
         if (INVALID_SOCKET == cSock) {
             printf("客户端连接失败 \n");
         }
-        ClientSocketPtr pClient = std::make_shared<ClientSocket>(cSock, clientAddr);
+        ClientSocketPtr pClient(new ClientSocket(cSock, clientAddr));
         AddClientToCellServer(pClient);
         //printf("新客户端加入: cSock = %d,客户端数量 = %d, ip = %s \n", (int)cSock, _clientCount, inet_ntoa(clientAddr.sin_addr));
         return cSock;
@@ -568,6 +569,4 @@ public:
     }
 
 };
-
-
 #endif // !_EASY_TCP_SERVER_HPP_

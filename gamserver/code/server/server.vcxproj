@@ -168,6 +168,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Alloctor.h" />
+    <ClInclude Include="CellObjPool.hpp" />
     <ClInclude Include="CellTask.hpp" />
     <ClInclude Include="CellTimestame.hpp" />
     <ClInclude Include="EasyTcpServer.hpp" />
