@@ -1,343 +1,15 @@
 ﻿#ifndef _EASY_TCP_SERVER_HPP_
 #define _EASY_TCP_SERVER_HPP_
-#ifdef _WIN32
-#define FD_SETSIZE 1024
-#define WIN32_LEAN_AND_MEAN //避免windows.h 和 WinSock2.h 中的宏定义重复
-
-#include <windows.h>
-#include <WinSock2.h>
-//静态链接库 win平台
-//#pragma comment(lib, "ws2_32.lib")
-#else
-#include <unistd.h> //uni std
-#include <arpa/inet.h>
-#include <string.h>
-
-#define SOCKET int
-#define INVALID_SOCKET  (SOCKET)(~0)
-#define SOCKET_ERROR            (-1)
-#endif
-
-#ifndef REVC_BUFF_SIZE
-#define REVC_BUFF_SIZE 10240 * 5
-#endif // !REVC_BUFF_SIZE
-
-#ifndef SEND_BUFF_SIZE
-#define SEND_BUFF_SIZE 10240
-#endif // !SEND_BUFF_SIZE
-
-#ifndef CELL_SERVER_THEARD
-#define CELL_SERVER_THEARD 4
-#endif
+#include "Cell.hpp"
+#include "INetEvent.hpp"
+#include "CellServer.hpp"
+#include "CellClient.hpp"
 
 #include <stdio.h>
-#include <vector>
 #include <thread>
 #include <mutex> //锁
 #include <atomic>
-#include <map>
-#include "MessageHeader.hpp"
-#include "CellTimestame.hpp"
-#include "CellTask.hpp"
-//客户端数据类型
-class ClientSocket {
-private:
-    SOCKET _sock;
-    char _szMsgBuf[REVC_BUFF_SIZE]; //第二缓冲区，消息缓冲区
-    int _lastPos;//消息缓冲区结尾
-    sockaddr_in _addr;
-    int _lastSendPos;//消息缓冲区结尾
-    char _szSendBuf[SEND_BUFF_SIZE];
-public:
-    ClientSocket(SOCKET sock, sockaddr_in addr) {
-        _sock = sock;
-        _lastPos = 0;
-        _lastSendPos = 0;
-        memset(_szMsgBuf, 0, sizeof(_szMsgBuf));
-        memset(_szSendBuf, 0, sizeof(_szSendBuf));
-        _addr = addr;
-    }
-    
-    SOCKET GetSocket() {
-        return _sock;
-    }
-
-    char* MsgBuf() {
-        return _szMsgBuf;
-    }
-
-    int GetLastPos() {
-        return _lastPos;
-    }
-
-    void SetLastPos(int lastPos) {
-        _lastPos = lastPos;
-    }
-
-    int SendData(DataHeader* hd) {
-        int ret = SOCKET_ERROR;
-        if (!hd) {
-            return ret;
-        }
-        
-        int nSendLen = hd->dataLen;
-        const char* pSendData = (const char*)hd;
-        while (true) {
-            if (_lastSendPos + nSendLen >= SEND_BUFF_SIZE) {
-                int nCopyLen = SEND_BUFF_SIZE - _lastSendPos;
-                memcpy(_szSendBuf + _lastSendPos, pSendData, nCopyLen);
-                //计算剩余数据位置
-                pSendData += nCopyLen;
-                //计算剩余长度
-                nSendLen -= nCopyLen;
-                //send
-                ret = send(_sock, _szSendBuf, SEND_BUFF_SIZE, 0);
-                _lastSendPos = 0;
-                if (SOCKET_ERROR == ret) {
-                    return ret;
-                }
-            } else {
-                memcpy(_szSendBuf + _lastSendPos, pSendData, nSendLen);
-                _lastSendPos += nSendLen;
-                break;
-            }
-        }
-        return ret;
-    }
-};
-
-class CellServer;
-//网络事件接口
-class INetEvent {
-public:
-    virtual void OnNetJoin(ClientSocket* pClent) = 0;
-    virtual void OnNetLevel(ClientSocket* pClent) = 0;
-    virtual void OnNetMsg(CellServer* pCellServer, ClientSocket* pClent, DataHeader* pHd) = 0;
-    virtual void OnNetRecv(ClientSocket* pClent) = 0;
-};
-
-class CellSenMsg2ClienTask : public CellTask{
-    ClientSocket* _pClient;
-    DataHeader* _pHeader;
-public:
-    CellSenMsg2ClienTask(ClientSocket* pClient, DataHeader* pHd) {
-        _pClient = pClient;
-        _pHeader = pHd;
-    }
-    ~CellSenMsg2ClienTask() {
-
-    }
-
-    virtual void DoTask() {
-        _pClient->SendData(_pHeader);
-        delete _pHeader;
-    }
-
-private:
-
-};
-
-class CellServer {
-private:
-    SOCKET _sock;
-    //正式
-    std::map<SOCKET, ClientSocket *> _client;
-    //缓冲
-    std::vector<ClientSocket *> _clientBuff;
-    std::mutex _mutex;
-    std::thread* _pThread;
-    INetEvent* _pNetEvent;
-    CellTaskServer _taskServer;
-public:
-    CellServer(SOCKET socket = INVALID_SOCKET) {
-        _sock = socket;
-        _pThread = nullptr;
-        _pNetEvent = nullptr;
-        _clientChange = true;
-    }
-
-    ~CellServer() {
-        Close();
-        _sock = INVALID_SOCKET;
-        delete _pThread;
-    }
-    void AddSendTask(ClientSocket* pClient, DataHeader* pHd) {
-        CellSenMsg2ClienTask *task = new CellSenMsg2ClienTask(pClient, pHd);
-        _taskServer.AddTask(task);
-    }
-
-    void SetNetObj(INetEvent* event) {
-        _pNetEvent = event;
-    }
-
-    int GetClientCount() {
-        return _clientBuff.size() + _client.size();
-    }
-
-    void AddClient(ClientSocket* pClient) {
-        std::lock_guard<std::mutex> lock(_mutex);
-        _clientBuff.push_back(pClient); //在线程中要使用，所以要加锁
-    }
-
-    void Start() {
-        _pThread = new std::thread(std::mem_fn(&CellServer::OnRun), this); //成员函数转函数对象，使用对象指针或引用进行绑定
-        _pThread->detach();
-        _taskServer.Start();
-    }
-
-    //关闭socket
-    void Close() {
-        if (INVALID_SOCKET == _sock) {
-            return;
-        }
-#ifdef _WIN32
-        for (auto c : _client) {
-            closesocket(c.second->GetSocket());
-            delete c.second;
-        }
-        //closesocket(_sock);
-#else
-        for (auto c : _client) {
-            close(c.second->GetSocket());
-            delete c.second;
-        }
-        //close(_sock);
-#endif
-        _sock = INVALID_SOCKET;
-        _client.clear();
-    }
-
-    fd_set _fdReadBak;
-    bool _clientChange;
-    SOCKET _maxSocket;
-    bool OnRun() {
-        while (IsRun()) {
-            if (!_clientBuff.empty()){
-                std::lock_guard<std::mutex> lock(_mutex);
-                for (auto pClient : _clientBuff){
-                    _client[pClient->GetSocket()] = pClient;
-                }
-                _clientBuff.clear();
-                _clientChange = true;
-            }
-
-            if (_client.empty()) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                continue;
-            }
-
-            fd_set fdRead;
-            FD_ZERO(&fdRead);
-
-            if (_clientChange) {
-                _clientChange = false;
-                _maxSocket = _client.begin()->second->GetSocket();
-                for (auto c : _client)
-                {
-                    FD_SET(c.first, &fdRead);
-                    if (c.first > _maxSocket) {
-                        _maxSocket = c.first;
-                    }
-                    
-                }
-                memcpy(&_fdReadBak, &fdRead, sizeof(fd_set));
-            } else {
-                memcpy(&fdRead, &_fdReadBak, sizeof(fd_set));
-            }
-            
-
-            int ret = select(_maxSocket + 1, &fdRead, nullptr, nullptr, nullptr); //select 性能瓶颈 最大的集合只有64
-            if (ret < 0) {
-                printf("select 结束 \n");
-                Close();
-                return false;
-            } else if (ret == 0) {
-                continue;
-            }
-#ifdef WIN32
-            for (int i = 0; i < fdRead.fd_count; i++) {
-                auto iter = _client.find(fdRead.fd_array[i]);
-                if (iter != _client.end()) {
-                    int ret = RecvData(iter->second);
-                    if (ret == -1) {
-                        if (_pNetEvent) {
-                            _pNetEvent->OnNetLevel(iter->second);
-                        }
-                        delete iter->second;
-                        _client.erase(iter->first);
-                        _clientChange = true;
-                    }
-                } else {
-                    printf("error socket \n");
-                }
-            }
-
-#else
-            std::vector <ClientSocket*> temp;
-            for (auto c : _client) {
-                if (FD_ISSET(c.first, &fdRead)) {
-                    int ret = RecvData(c.second);
-                    if (ret == -1) {
-                        if (_pNetEvent) {
-                            _pNetEvent->OnNetLevel(c.second);
-                        }
-                        temp.push_back(c.second);
-                        _clientChange = true;
-                    }
-                }
-            }
-
-            for (auto client : temp) {
-                _client.erase(client->GetSocket());
-                delete client;
-            }
-#endif // WIN32
-            
-        }
-        return true;
-    }
-    //是否工作中
-    bool IsRun() {
-        return _sock != INVALID_SOCKET;
-    }
-
-    //接收数据 处理粘包 拆分包
-    int RecvData(ClientSocket* client) {
-        char* szRevc = client->MsgBuf() + client->GetLastPos();
-        int nLen = recv(client->GetSocket(), szRevc, REVC_BUFF_SIZE - client->GetLastPos(), 0);
-        if (nLen <= 0) {
-            return -1;
-        }
-        _pNetEvent->OnNetRecv(client);
-        //消息缓冲区数据尾部向后
-        client->SetLastPos(client->GetLastPos() + nLen);
-        //判断消息长度大于消息头
-        while (client->GetLastPos() >= sizeof(DataHeader)) {
-            //当前消息
-            DataHeader *hd = (DataHeader*)client->MsgBuf();
-            if (client->GetLastPos() >= hd->dataLen) {
-                int msgLen = hd->dataLen;
-                //处理消息
-                OnNetMsg(client, hd);
-                //数据前移
-                memcpy(client->MsgBuf(), client->MsgBuf() + msgLen, client->GetLastPos() - msgLen);
-                //消息尾部前移
-                client->SetLastPos(client->GetLastPos() - msgLen);
-            } else {
-                break;
-            }
-        }
-
-        return 0;
-    }
-
-    virtual void OnNetMsg(ClientSocket* pClient, DataHeader* pHd) {
-        if (pClient && pHd) {
-            _pNetEvent->OnNetMsg(this, pClient, pHd);
-        }
-    }
-
-};
+#include <vector>
 
 class EasyTcpServer: public INetEvent {
 private:
@@ -441,12 +113,12 @@ public:
             printf("客户端连接失败 \n");
         }
 
-        AddClientToCellServer(new ClientSocket(cSock, clientAddr));
+        AddClientToCellServer(new CellClient(cSock, clientAddr));
         //printf("新客户端加入: cSock = %d,客户端数量 = %d, ip = %s \n", (int)cSock, _clientCount, inet_ntoa(clientAddr.sin_addr));
         return cSock;
     }
 
-    void AddClientToCellServer(ClientSocket* pClient) {
+    void AddClientToCellServer(CellClient* pClient) {
         auto minSer = _cellServer[0];
         for (auto ser : _cellServer)
         {
@@ -534,19 +206,19 @@ public:
         }
     }
 
-    virtual void OnNetJoin(ClientSocket* pClient) {
+    virtual void OnNetJoin(CellClient* pClient) {
         _clientCount++;
     }
 
-    virtual void OnNetLevel(ClientSocket* pClient) {
+    virtual void OnNetLevel(CellClient* pClient) {
         _clientCount--;
     }
 
-    virtual void OnNetRecv(ClientSocket* pClient) {
+    virtual void OnNetRecv(CellClient* pClient) {
         _recvCount++;
     }
 
-    virtual void OnNetMsg(CellServer* pCellServer ,ClientSocket* pClient, DataHeader* pHd) {
+    virtual void OnNetMsg(CellServer* pCellServer ,CellClient* pClient, DataHeader* pHd) {
         _msgCount++;
         if (!pHd) {
             return;
@@ -573,7 +245,6 @@ public:
         }break;
         }
     }
-
 };
 
 

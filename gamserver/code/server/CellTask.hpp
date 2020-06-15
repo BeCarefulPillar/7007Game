@@ -7,19 +7,10 @@
 
 class CellTask {
 public:
-    CellTask() {
-
-    }
-
-    virtual ~CellTask() {
-
-    }
-    
-    virtual void DoTask() {
-
-    }
+    CellTask() {}
+    virtual ~CellTask() {}
+    virtual void DoTask() {}
 private:
-
 };
 
 class CellTaskServer {
@@ -28,15 +19,10 @@ private:
     std::list<CellTask*> _tasks;
     //»º³å
     std::list<CellTask*> _tasksBuf;
-
     std::mutex _mutex;
 public:
-    CellTaskServer() {
-
-    }
-    ~CellTaskServer() {
-
-    }
+    CellTaskServer() {}
+    ~CellTaskServer() {}
 
     void AddTask(CellTask * task) {
         std::lock_guard<std::mutex> lock(_mutex);
@@ -70,6 +56,4 @@ private:
         }
     }
 };
-
-
 #endif
