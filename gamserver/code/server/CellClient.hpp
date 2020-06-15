@@ -1,14 +1,14 @@
 #ifndef _CELL_CLIENT_HPP
 #define _CELL_CLIENT_HPP
 #include "Cell.hpp"
-//¿Í»§¶ËÊı¾İÀàĞÍ
+//å®¢æˆ·ç«¯æ•°æ®ç±»å‹
 class CellClient {
 private:
     SOCKET _sock;
-    char _szMsgBuf[REVC_BUFF_SIZE]; //µÚ¶ş»º³åÇø£¬ÏûÏ¢»º³åÇø
-    int _lastPos;//ÏûÏ¢»º³åÇø½áÎ²
+    char _szMsgBuf[REVC_BUFF_SIZE]; //ç¬¬äºŒç¼“å†²åŒºï¼Œæ¶ˆæ¯ç¼“å†²åŒº
+    int _lastPos;//æ¶ˆæ¯ç¼“å†²åŒºç»“å°¾
     sockaddr_in _addr;
-    int _lastSendPos;//ÏûÏ¢»º³åÇø½áÎ²
+    int _lastSendPos;//æ¶ˆæ¯ç¼“å†²åŒºç»“å°¾
     char _szSendBuf[SEND_BUFF_SIZE];
 public:
     CellClient(SOCKET sock, sockaddr_in addr) {
@@ -48,9 +48,9 @@ public:
             if (_lastSendPos + nSendLen >= SEND_BUFF_SIZE) {
                 int nCopyLen = SEND_BUFF_SIZE - _lastSendPos;
                 memcpy(_szSendBuf + _lastSendPos, pSendData, nCopyLen);
-                //¼ÆËãÊ£ÓàÊı¾İÎ»ÖÃ
+                //è®¡ç®—å‰©ä½™æ•°æ®ä½ç½®
                 pSendData += nCopyLen;
-                //¼ÆËãÊ£Óà³¤¶È
+                //è®¡ç®—å‰©ä½™é•¿åº¦
                 nSendLen -= nCopyLen;
                 //send
                 ret = send(_sock, _szSendBuf, SEND_BUFF_SIZE, 0);
