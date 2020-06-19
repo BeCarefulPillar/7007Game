@@ -6,24 +6,6 @@
 #include <map>
 #include <vector>
 
-class CellSenMsg2ClienTask : public CellTask {
-    CellClient* _pClient;
-    DataHeader* _pHeader;
-public:
-    CellSenMsg2ClienTask(CellClient* pClient, DataHeader* pHd) {
-        _pClient = pClient;
-        _pHeader = pHd;
-    }
-    ~CellSenMsg2ClienTask() {
-
-    }
-    virtual void DoTask() {
-        _pClient->SendData(_pHeader);
-        delete _pHeader;
-    }
-private:
-};
-
 class CellServer {
 private:
     SOCKET _sock;
@@ -48,9 +30,12 @@ public:
         _sock = INVALID_SOCKET;
         delete _pThread;
     }
+
     void AddSendTask(CellClient* pClient, DataHeader* pHd) {
-        CellSenMsg2ClienTask *task = new CellSenMsg2ClienTask(pClient, pHd);
-        _taskServer.AddTask(task);
+        _taskServer.AddTask([pClient, pHd]() {
+            pClient->SendData(pHd);
+            delete pHd;
+        });
     }
 
     void SetNetObj(INetEvent* event) {

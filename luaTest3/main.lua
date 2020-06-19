@@ -1,17 +1,10 @@
 local uihelper =  require "uihelper"
-print(14.3 % 2.2)
 
-local aa = {}
 
-local function call()
-    for _,v in ipairs(aa) do
-        v()
-    end
-    -- body
-end
+local test  = {}
+test.is = true
+local aa = test and test.is or false
+test = {cc = 1, is = false}
 
-table.insert(aa, function ()
-    print("1111")
-end)
-
-call()
+test.is = aa
+print(aa,test.is)

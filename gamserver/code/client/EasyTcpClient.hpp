@@ -163,7 +163,7 @@ public:
         switch (hd->cmd) {
         case CMD_LOGIN_RESULT: {
             LoginResult *loginRes = (LoginResult *)hd;
-            printf("recv CMD_LOGIN_RESULT dataLen = %d, %s \n", loginRes->dataLen, loginRes->data);
+            //printf("recv CMD_LOGIN_RESULT dataLen = %d, %s \n", loginRes->dataLen, loginRes->data);
         } break;
         case CMD_LOGOUT_RESULT: {
             LogoutResult *logoutData = (LogoutResult *)hd;

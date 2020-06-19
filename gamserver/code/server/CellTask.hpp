@@ -4,27 +4,21 @@
 #include<thread>
 #include<mutex>
 #include<list>
-
-class CellTask {
-public:
-    CellTask() {}
-    virtual ~CellTask() {}
-    virtual void DoTask() {}
-private:
-};
+#include<functional>
 
 class CellTaskServer {
+    typedef std::function<void()> CellTask;
 private:
     //Êý¾Ý
-    std::list<CellTask*> _tasks;
+    std::list<CellTask> _tasks;
     //»º³å
-    std::list<CellTask*> _tasksBuf;
+    std::list<CellTask> _tasksBuf;
     std::mutex _mutex;
 public:
     CellTaskServer() {}
     ~CellTaskServer() {}
 
-    void AddTask(CellTask * task) {
+    void AddTask(CellTask task) {
         std::lock_guard<std::mutex> lock(_mutex);
         _tasksBuf.push_back(task);
     }
@@ -49,8 +43,7 @@ private:
                 continue;
             }
             for (auto pTask : _tasks) {
-                pTask->DoTask();
-                delete pTask;
+                pTask();
             }
             _tasks.clear();
         }
