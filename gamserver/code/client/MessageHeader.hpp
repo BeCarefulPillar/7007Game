@@ -8,6 +8,8 @@ enum CMD {
     CMD_LOGOUT,
     CMD_LOGOUT_RESULT,
     CMD_NEW_CLIENT_JOIN,
+    CMD_HEART,
+    CMD_HEART_RESULT,
 };
 
 struct DataHeader {
@@ -63,5 +65,19 @@ struct NewClientJoin : public DataHeader {
         dataLen = sizeof(NewClientJoin);
     };
     int sock;
+};
+
+struct Heart : public DataHeader {
+    Heart() {
+        cmd = CMD_HEART;
+        dataLen = sizeof(Heart);
+    };
+};
+
+struct HeartResult : public DataHeader {
+    HeartResult() {
+        cmd = CMD_HEART_RESULT;
+        dataLen = sizeof(HeartResult);
+    };
 };
 #endif

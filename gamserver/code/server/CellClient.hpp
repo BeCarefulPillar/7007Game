@@ -1,6 +1,8 @@
 #ifndef _CELL_CLIENT_HPP
 #define _CELL_CLIENT_HPP
 #include "Cell.hpp"
+//Ms
+#define  CELLENT_HEART_DEAD_TIME 5000
 //客户端数据类型
 class CellClient {
 private:
@@ -10,6 +12,8 @@ private:
     sockaddr_in _addr;
     int _lastSendPos;//消息缓冲区结尾
     char _szSendBuf[SEND_BUFF_SIZE];
+    //心跳死亡计时
+    time_t _dtHeart;
 public:
     CellClient(SOCKET sock, sockaddr_in addr) {
         _sock = sock;
@@ -18,6 +22,15 @@ public:
         memset(_szMsgBuf, 0, sizeof(_szMsgBuf));
         memset(_szSendBuf, 0, sizeof(_szSendBuf));
         _addr = addr;
+        ResetDTHeart();
+    }
+
+    ~CellClient() {
+#ifdef _WIN32
+        closesocket(_sock);
+#else
+        close(_sock);
+#endif
     }
 
     SOCKET GetSocket() {
@@ -65,6 +78,19 @@ public:
             }
         }
         return ret;
+    }
+
+    void ResetDTHeart() {
+        _dtHeart = 0;
+    }
+
+    bool CheckHeart(time_t dt) {
+        _dtHeart += dt;
+        if (_dtHeart >= CELLENT_HEART_DEAD_TIME) {
+            printf("CheckHeart dead : %d , time = %d \n", _sock, _dtHeart);
+            return true;
+        }
+        return false;
     }
 };
 #endif

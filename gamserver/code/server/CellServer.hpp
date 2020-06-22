@@ -64,13 +64,13 @@ public:
         }
 #ifdef _WIN32
         for (auto c : _client) {
-            closesocket(c.second->GetSocket());
+            //closesocket(c.second->GetSocket());
             delete c.second;
         }
         //closesocket(_sock);
 #else
         for (auto c : _client) {
-            close(c.second->GetSocket());
+            //close(c.second->GetSocket());
             delete c.second;
         }
         //close(_sock);
@@ -95,6 +95,7 @@ public:
 
             if (_client.empty()) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                _oldTime = CellTime::GetNowInMillSec();
                 continue;
             }
 
@@ -109,15 +110,14 @@ public:
                     if (c.first > _maxSocket) {
                         _maxSocket = c.first;
                     }
-
                 }
                 memcpy(&_fdReadBak, &fdRead, sizeof(fd_set));
             } else {
                 memcpy(&fdRead, &_fdReadBak, sizeof(fd_set));
             }
 
-
-            int ret = select(_maxSocket + 1, &fdRead, nullptr, nullptr, nullptr); //select 性能瓶颈 最大的集合只有64
+            timeval t{0, 1};
+            int ret = select(_maxSocket + 1, &fdRead, nullptr, nullptr, &t); //select 性能瓶颈 最大的集合只有64
             if (ret < 0) {
                 printf("select 结束 \n");
                 Close();
@@ -125,47 +125,75 @@ public:
             } else if (ret == 0) {
                 continue;
             }
-#ifdef WIN32
-            for (int i = 0; i < fdRead.fd_count; i++) {
-                auto iter = _client.find(fdRead.fd_array[i]);
-                if (iter != _client.end()) {
-                    int ret = RecvData(iter->second);
-                    if (ret == -1) {
-                        if (_pNetEvent) {
-                            _pNetEvent->OnNetLevel(iter->second);
-                        }
-                        delete iter->second;
-                        _client.erase(iter->first);
-                        _clientChange = true;
-                    }
-                } else {
-                    printf("error socket \n");
-                }
-            }
 
-#else
-            std::vector <CellClient*> temp;
-            for (auto c : _client) {
-                if (FD_ISSET(c.first, &fdRead)) {
-                    int ret = RecvData(c.second);
-                    if (ret == -1) {
-                        if (_pNetEvent) {
-                            _pNetEvent->OnNetLevel(c.second);
-                        }
-                        temp.push_back(c.second);
-                        _clientChange = true;
-                    }
-                }
-            }
-
-            for (auto client : temp) {
-                _client.erase(client->GetSocket());
-                delete client;
-            }
-#endif // WIN32
-
+            ReadData(fdRead);
+            CheckTime();
         }
         return true;
+    }
+
+    time_t _oldTime = CellTime::GetNowInMillSec();
+    void CheckTime() {
+        auto nowTime = CellTime::GetNowInMillSec();
+        auto dt = nowTime - _oldTime;
+        _oldTime = nowTime;
+        for (auto iter = _client.begin(); iter != _client.end();) {
+            if (iter->second->CheckHeart(dt)){
+                if (_pNetEvent) {
+                    _pNetEvent->OnNetLevel(iter->second);
+                }
+                delete iter->second;
+                auto iterOld = iter;
+                iter++;
+                _client.erase(iterOld);
+                _clientChange = true;
+            } else {
+                iter++;
+            }
+
+        }
+    }
+
+    void ReadData(fd_set& fdRead) {
+#ifdef WIN32
+        for (int i = 0; i < fdRead.fd_count; i++) {
+            auto iter = _client.find(fdRead.fd_array[i]);
+            if (iter != _client.end()) {
+                int ret = RecvData(iter->second);
+                if (ret == -1) {
+                    if (_pNetEvent) {
+                        _pNetEvent->OnNetLevel(iter->second);
+                    }
+                    delete iter->second;
+                    _client.erase(iter);
+                    _clientChange = true;
+                }
+            } else {
+                printf("error socket \n");
+            }
+        }
+
+#else
+        std::vector <CellClient*> temp;
+        for (auto c : _client) {
+            if (FD_ISSET(c.first, &fdRead)) {
+                int ret = RecvData(c.second);
+                if (ret == -1) {
+                    if (_pNetEvent) {
+                        _pNetEvent->OnNetLevel(c.second);
+                    }
+                    temp.push_back(c.second);
+                    _clientChange = true;
+                }
+            }
+        }
+
+        for (auto client : temp) {
+            _client.erase(client->GetSocket());
+            delete client;
+        }
+#endif // WIN32
+
     }
     //是否工作中
     bool IsRun() {
@@ -173,27 +201,28 @@ public:
     }
 
     //接收数据 处理粘包 拆分包
-    int RecvData(CellClient* client) {
-        char* szRevc = client->MsgBuf() + client->GetLastPos();
-        int nLen = recv(client->GetSocket(), szRevc, REVC_BUFF_SIZE - client->GetLastPos(), 0);
+    int RecvData(CellClient* pClient) {
+        char* szRevc = pClient->MsgBuf() + pClient->GetLastPos();
+        int nLen = recv(pClient->GetSocket(), szRevc, REVC_BUFF_SIZE - pClient->GetLastPos(), 0);
         if (nLen <= 0) {
             return -1;
         }
-        _pNetEvent->OnNetRecv(client);
+        //pClient->ResetDTHeart();
+        _pNetEvent->OnNetRecv(pClient);
         //消息缓冲区数据尾部向后
-        client->SetLastPos(client->GetLastPos() + nLen);
+        pClient->SetLastPos(pClient->GetLastPos() + nLen);
         //判断消息长度大于消息头
-        while (client->GetLastPos() >= sizeof(DataHeader)) {
+        while (pClient->GetLastPos() >= sizeof(DataHeader)) {
             //当前消息
-            DataHeader *hd = (DataHeader*)client->MsgBuf();
-            if (client->GetLastPos() >= hd->dataLen) {
+            DataHeader *hd = (DataHeader*)pClient->MsgBuf();
+            if (pClient->GetLastPos() >= hd->dataLen) {
                 int msgLen = hd->dataLen;
                 //处理消息
-                OnNetMsg(client, hd);
+                OnNetMsg(pClient, hd);
                 //数据前移
-                memcpy(client->MsgBuf(), client->MsgBuf() + msgLen, client->GetLastPos() - msgLen);
+                memcpy(pClient->MsgBuf(), pClient->MsgBuf() + msgLen, pClient->GetLastPos() - msgLen);
                 //消息尾部前移
-                client->SetLastPos(client->GetLastPos() - msgLen);
+                pClient->SetLastPos(pClient->GetLastPos() - msgLen);
             } else {
                 break;
             }

@@ -227,9 +227,10 @@ public:
         case CMD_LOGIN: {
             Login *loginData = (Login *)pHd;
             /*printf("recv <socket = %d> ,CMD_LOGIN dataLen = %d,account = %s,password=%s \n", pClient->GetSocket(), loginData->dataLen, loginData->account, loginData->password);*/
-
-            LoginResult* loginRes =new LoginResult();
-            pCellServer->AddSendTask(pClient, loginRes);
+            LoginResult loginRes;
+            pClient->SendData(&loginRes);
+//             LoginResult* loginRes =new LoginResult();
+//             pCellServer->AddSendTask(pClient, loginRes);
         } break;
         case CMD_LOGOUT: {
             Logout *logoutData = (Logout *)pHd;
@@ -238,6 +239,11 @@ public:
             //LogoutResult logoutRes;
 
             //pClient->SendData(&logoutRes);
+        }break;
+        case CMD_HEART: {
+            pClient->ResetDTHeart();
+            HeartResult heartRes;
+            pClient->SendData(&heartRes);
         }break;
         default: {
             DataHeader head;
