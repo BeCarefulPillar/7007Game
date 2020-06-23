@@ -8,7 +8,6 @@
 
 class CellServer {
 private:
-    SOCKET _sock;
     //ÕýÊ½
     std::map<SOCKET, CellClient *> _client;
     //»º³å
@@ -16,10 +15,16 @@ private:
     std::mutex _mutex;
     std::thread* _pThread;
     INetEvent* _pNetEvent;
-    CellTaskServer _taskServer;
+    CellTaskServer _taskServer;    
+    fd_set _fdReadBak;
+    SOCKET _maxSocket;
+    time_t _oldTime = CellTime::GetNowInMillSec();
+    int _id;
+    bool _clientChange;
+
 public:
-    CellServer(SOCKET socket = INVALID_SOCKET) {
-        _sock = socket;
+    CellServer(int id) {
+        _id = id;
         _pThread = nullptr;
         _pNetEvent = nullptr;
         _clientChange = true;
@@ -27,7 +32,6 @@ public:
 
     ~CellServer() {
         Close();
-        _sock = INVALID_SOCKET;
         delete _pThread;
     }
 
@@ -62,26 +66,18 @@ public:
         if (INVALID_SOCKET == _sock) {
             return;
         }
-#ifdef _WIN32
         for (auto c : _client) {
-            //closesocket(c.second->GetSocket());
             delete c.second;
         }
-        //closesocket(_sock);
-#else
-        for (auto c : _client) {
-            //close(c.second->GetSocket());
-            delete c.second;
-        }
-        //close(_sock);
-#endif
         _client.clear();
+        for (auto c : _clientBuff) {
+            delete c;
+        }
+        _clientBuff.clear();
+        _taskServer.Close();
         _sock = INVALID_SOCKET;
     }
 
-    fd_set _fdReadBak;
-    bool _clientChange;
-    SOCKET _maxSocket;
     bool OnRun() {
         while (IsRun()) {
             if (!_clientBuff.empty()) {
@@ -132,12 +128,14 @@ public:
         return true;
     }
 
-    time_t _oldTime = CellTime::GetNowInMillSec();
     void CheckTime() {
         auto nowTime = CellTime::GetNowInMillSec();
         auto dt = nowTime - _oldTime;
         _oldTime = nowTime;
         for (auto iter = _client.begin(); iter != _client.end();) {
+            //·¢ËÍ¼ì²â
+            iter->second->CheckSend(dt);
+            //ÐÄÌø¼ì²â
             if (iter->second->CheckHeart(dt)){
                 if (_pNetEvent) {
                     _pNetEvent->OnNetLevel(iter->second);

@@ -26,6 +26,7 @@ public:
         _recvCount = 0;
         _clientCount = 0;
     }
+
     virtual ~EasyTcpServer() {
         Close();
     }
@@ -91,7 +92,7 @@ public:
     //开启服务线程
     void Start() {
         for (int i = 0; i < CELL_SERVER_THEARD; i++) {
-            CellServer* server = new CellServer(_sock);
+            CellServer* server = new CellServer(i+1);
             _cellServer.push_back(server);
             //注册网络事件
             server->SetNetObj(this);

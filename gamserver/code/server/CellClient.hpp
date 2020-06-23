@@ -1,8 +1,10 @@
 #ifndef _CELL_CLIENT_HPP
 #define _CELL_CLIENT_HPP
 #include "Cell.hpp"
-//Ms
-#define  CELLENT_HEART_DEAD_TIME 5000
+//MS
+#define  CELLENT_HEART_DEAD_TIME 60000
+//指定时间内清空发送缓冲区
+#define  CELLENT_SEND_BUFF_TIME 200
 //客户端数据类型
 class CellClient {
 private:
@@ -14,6 +16,8 @@ private:
     char _szSendBuf[SEND_BUFF_SIZE];
     //心跳死亡计时
     time_t _dtHeart;
+    //上次发送时间
+    time_t _dtSend;
 public:
     CellClient(SOCKET sock, sockaddr_in addr) {
         _sock = sock;
@@ -23,6 +27,7 @@ public:
         memset(_szSendBuf, 0, sizeof(_szSendBuf));
         _addr = addr;
         ResetDTHeart();
+        ResetDTSend();
     }
 
     ~CellClient() {
@@ -49,6 +54,25 @@ public:
         _lastPos = lastPos;
     }
 
+    int SendDataReal(DataHeader* pHd) {
+        SendData(pHd);
+        SendDataReal();
+    }
+
+    //立即发送数据
+    int SendDataReal() {
+        int ret = SOCKET_ERROR;
+        if (_lastSendPos > 0 && SOCKET_ERROR != _sock) {
+            ret = send(_sock, _szSendBuf, _lastSendPos, 0);
+            _lastSendPos = 0;
+            ResetDTSend();
+            if (SOCKET_ERROR == ret) {
+                return ret;
+            }
+        }
+        return ret;
+    }
+
     int SendData(DataHeader* hd) {
         int ret = SOCKET_ERROR;
         if (!hd) {
@@ -56,6 +80,7 @@ public:
         }
 
         int nSendLen = hd->dataLen;
+        printf("send len = %d\n", nSendLen);
         const char* pSendData = (const char*)hd;
         while (true) {
             if (_lastSendPos + nSendLen >= SEND_BUFF_SIZE) {
@@ -68,6 +93,8 @@ public:
                 //send
                 ret = send(_sock, _szSendBuf, SEND_BUFF_SIZE, 0);
                 _lastSendPos = 0;
+                //重置时间
+                ResetDTSend();
                 if (SOCKET_ERROR == ret) {
                     return ret;
                 }
@@ -87,10 +114,23 @@ public:
     bool CheckHeart(time_t dt) {
         _dtHeart += dt;
         if (_dtHeart >= CELLENT_HEART_DEAD_TIME) {
-            printf("CheckHeart dead : %d , time = %d \n", _sock, _dtHeart);
+            printf("CheckHeart sock : %d , time = %d \n", _sock, _dtHeart);
             return true;
         }
         return false;
+    }
+
+    void ResetDTSend() {
+        _dtSend = 0;
+    }
+    //定时发送消息
+    void CheckSend(time_t dt) {
+        _dtSend += dt;
+        if (_dtSend >= CELLENT_SEND_BUFF_TIME) {
+            printf("CheckSend sock : %d , time = %d \n", _sock, _dtSend);
+            //立即发送数据
+            SendDataReal();
+        }
     }
 };
 #endif
