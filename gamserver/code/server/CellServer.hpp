@@ -21,6 +21,7 @@ private:
     time_t _oldTime = CellTime::GetNowInMillSec();
     int _id;
     bool _clientChange;
+    bool _isRun;
 
 public:
     CellServer(int id) {
@@ -28,6 +29,7 @@ public:
         _pThread = nullptr;
         _pNetEvent = nullptr;
         _clientChange = true;
+        _isRun = true;
     }
 
     ~CellServer() {
@@ -63,9 +65,7 @@ public:
 
     //关闭socket
     void Close() {
-        if (INVALID_SOCKET == _sock) {
-            return;
-        }
+        _isRun = false;
         for (auto c : _client) {
             delete c.second;
         }
@@ -75,11 +75,10 @@ public:
         }
         _clientBuff.clear();
         _taskServer.Close();
-        _sock = INVALID_SOCKET;
     }
 
     bool OnRun() {
-        while (IsRun()) {
+        while (_isRun) {
             if (!_clientBuff.empty()) {
                 std::lock_guard<std::mutex> lock(_mutex);
                 for (auto pClient : _clientBuff) {
@@ -192,10 +191,6 @@ public:
         }
 #endif // WIN32
 
-    }
-    //是否工作中
-    bool IsRun() {
-        return _sock != INVALID_SOCKET;
     }
 
     //接收数据 处理粘包 拆分包
