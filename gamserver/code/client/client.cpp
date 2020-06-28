@@ -4,8 +4,8 @@
 #include "CellTimestame.hpp"
 
 bool g_run = true;
-const int cCount = 1;
-const int tCount = 1;
+const int cCount = 1000;
+const int tCount = 4;
 EasyTcpClient *client[cCount];
 std::atomic_int sendCount = 0;
 std::atomic_int readyCount = 0;
@@ -73,7 +73,6 @@ void sendTheard(int id) {
             }
             client[i]->OnRun();
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
     //---------------------------
     for (int i = begin; i < end; i++) {

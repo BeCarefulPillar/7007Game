@@ -229,6 +229,7 @@ public:
             Login *loginData = (Login *)pHd;
             /*printf("recv <socket = %d> ,CMD_LOGIN dataLen = %d,account = %s,password=%s \n", pClient->GetSocket(), loginData->dataLen, loginData->account, loginData->password);*/
             LoginResult loginRes;
+            strcpy(loginRes.data, "ssss");
             pClient->SendData(&loginRes);
 //             LoginResult* loginRes =new LoginResult();
 //             pCellServer->AddSendTask(pClient, loginRes);

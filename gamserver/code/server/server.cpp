@@ -30,6 +30,7 @@ int main() {
         //可以加服务器主动推送
     }
     server.Close();
+    Sleep(10000);
     getchar();
     return 0;
 }

@@ -80,7 +80,6 @@ public:
         }
 
         int nSendLen = hd->dataLen;
-        printf("send len = %d\n", nSendLen);
         const char* pSendData = (const char*)hd;
         while (true) {
             if (_lastSendPos + nSendLen >= SEND_BUFF_SIZE) {
@@ -114,7 +113,7 @@ public:
     bool CheckHeart(time_t dt) {
         _dtHeart += dt;
         if (_dtHeart >= CELLENT_HEART_DEAD_TIME) {
-            printf("CheckHeart sock : %d , time = %d \n", _sock, _dtHeart);
+            //printf("CheckHeart sock : %d , time = %d \n", _sock, _dtHeart);
             return true;
         }
         return false;
@@ -127,7 +126,7 @@ public:
     void CheckSend(time_t dt) {
         _dtSend += dt;
         if (_dtSend >= CELLENT_SEND_BUFF_TIME) {
-            printf("CheckSend sock : %d , time = %d \n", _sock, _dtSend);
+            //printf("CheckSend sock : %d , time = %d \n", _sock, _dtSend);
             //立即发送数据
             SendDataReal();
         }

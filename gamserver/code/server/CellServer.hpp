@@ -3,6 +3,8 @@
 
 #include "INetEvent.hpp"
 #include "Cell.hpp"
+#include "CellSemaphore.hpp"
+
 #include <map>
 #include <vector>
 
@@ -19,10 +21,22 @@ private:
     fd_set _fdReadBak;
     SOCKET _maxSocket;
     time_t _oldTime = CellTime::GetNowInMillSec();
+    CellSemaphore _sem;
     int _id;
     bool _clientChange;
     bool _isRun;
 
+private:
+    void ClearClients() {
+        for (auto c : _client) {
+            delete c.second;
+        }
+        _client.clear();
+        for (auto c : _clientBuff) {
+            delete c;
+        }
+        _clientBuff.clear();
+    }
 public:
     CellServer(int id) {
         _id = id;
@@ -65,16 +79,11 @@ public:
 
     //¹Ø±Õsocket
     void Close() {
-        _isRun = false;
-        for (auto c : _client) {
-            delete c.second;
+        if (_isRun) {
+            _taskServer.Close();
+            _isRun = false;
+            _sem.Wait();
         }
-        _client.clear();
-        for (auto c : _clientBuff) {
-            delete c;
-        }
-        _clientBuff.clear();
-        _taskServer.Close();
     }
 
     bool OnRun() {
@@ -124,6 +133,8 @@ public:
             ReadData(fdRead);
             CheckTime();
         }
+        ClearClients();
+        _sem.WakeUp();
         return true;
     }
 
