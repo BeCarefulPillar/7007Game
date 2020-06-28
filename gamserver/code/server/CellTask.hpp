@@ -58,7 +58,7 @@ private:
             }
             _tasks.clear();
         }
-        _sem.WakeUp();
+        _sem.Wakeup();
     }
 };
 #endif

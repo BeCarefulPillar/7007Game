@@ -3,31 +3,35 @@
 
 #include <chrono>
 #include <thread>
+#include <condition_variable>
 
 class CellSemaphore {
 private:
-    bool _isWaitExit = false;
+    //阻塞--条件变量
+    std::condition_variable _cv;
+    std::mutex _mutex;
+    int _wait;
+    int _wakeup;
+
 public:
-    CellSemaphore() {
-
-    }
-    ~CellSemaphore() {
-
-    }
-
+    //阻塞当前线程
     void Wait() {
-        _isWaitExit = true;
-        while (_isWaitExit) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        std::unique_lock<std::mutex> lock(_mutex);
+        if (--_wait < 0) {
+            _cv.wait(lock, [this]()->bool{
+                return _wakeup > 0;
+            });
+            --_wakeup;
         }
     }
 
-    void WakeUp() {
-        _isWaitExit = false;
+    void Wakeup() {
+        std::unique_lock<std::mutex> lock(_mutex);
+        if (++_wait <= 0) {
+            ++_wakeup;
+            _cv.notify_one();
+        }
     }
-
-private:
-
 };
 
 

@@ -134,7 +134,7 @@ public:
             CheckTime();
         }
         ClearClients();
-        _sem.WakeUp();
+        _sem.Wakeup();
         return true;
     }
 
