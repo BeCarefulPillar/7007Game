@@ -54,7 +54,7 @@ public:
         _lastPos = lastPos;
     }
 
-    int SendDataReal(DataHeader* pHd) {
+    void SendDataReal(DataHeader* pHd) {
         SendData(pHd);
         SendDataReal();
     }

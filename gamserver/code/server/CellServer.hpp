@@ -15,16 +15,14 @@ private:
     //缓冲
     std::vector<CellClient *> _clientBuff;
     std::mutex _mutex;
-    std::thread* _pThread;
     INetEvent* _pNetEvent;
     CellTaskServer _taskServer;    
     fd_set _fdReadBak;
     SOCKET _maxSocket;
     time_t _oldTime = CellTime::GetNowInMillSec();
-    CellSemaphore _sem;
+    CellThread _thread;
     int _id;
     bool _clientChange;
-    bool _isRun;
 
 private:
     void ClearClients() {
@@ -40,15 +38,12 @@ private:
 public:
     CellServer(int id) {
         _id = id;
-        _pThread = nullptr;
         _pNetEvent = nullptr;
         _clientChange = true;
-        _isRun = true;
     }
 
     ~CellServer() {
         Close();
-        delete _pThread;
     }
 
     void AddSendTask(CellClient* pClient, DataHeader* pHd) {
@@ -72,22 +67,26 @@ public:
     }
 
     void Start() {
-        _pThread = new std::thread(std::mem_fn(&CellServer::OnRun), this); //成员函数转函数对象，使用对象指针或引用进行绑定
-        _pThread->detach();
+        _thread.Start(
+            nullptr, 
+            [this](CellThread* pThread) {
+                OnRun(pThread);
+            },
+            [this](CellThread* pThread) {
+                ClearClients();
+            }
+        );
         _taskServer.Start();
     }
 
     //关闭socket
     void Close() {
-        if (_isRun) {
-            _taskServer.Close();
-            _isRun = false;
-            _sem.Wait();
-        }
+        _taskServer.Close();
+        _thread.Close();
     }
 
-    bool OnRun() {
-        while (_isRun) {
+    bool OnRun(CellThread* pThread) {
+        while (pThread->IsRun()) {
             if (!_clientBuff.empty()) {
                 std::lock_guard<std::mutex> lock(_mutex);
                 for (auto pClient : _clientBuff) {
@@ -123,9 +122,9 @@ public:
             timeval t{0, 1};
             int ret = select(_maxSocket + 1, &fdRead, nullptr, nullptr, &t); //select 性能瓶颈 最大的集合只有64
             if (ret < 0) {
-                printf("select 结束 \n");
-                Close();
-                return false;
+                printf("Cellserver %d.OnRun.select Error exit\n", _id);
+                pThread->Exit();
+                break;
             } else if (ret == 0) {
                 continue;
             }
@@ -133,8 +132,6 @@ public:
             ReadData(fdRead);
             CheckTime();
         }
-        ClearClients();
-        _sem.Wakeup();
         return true;
     }
 

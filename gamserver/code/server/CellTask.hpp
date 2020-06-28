@@ -5,8 +5,8 @@
 #include<mutex>
 #include<list>
 #include<functional>
-#include "CellSemaphore.hpp"
 
+#include "CellThread.hpp"
 class CellTaskServer {
     typedef std::function<void()> CellTask;
 private:
@@ -15,7 +15,7 @@ private:
     //»º³å
     std::list<CellTask> _tasksBuf;
     std::mutex _mutex;
-    CellSemaphore _sem;
+    CellThread _thread;
     bool _isRun = false;
 public:
     CellTaskServer() {}
@@ -27,20 +27,18 @@ public:
     }
 
     void Start() {
-        _isRun = true;
-        std::thread t(std::mem_fn(&CellTaskServer::OnRun), this);
-        t.detach();
+        _thread.Start(nullptr, [this](CellThread* pThread) {
+            OnRun(pThread);
+        });
     }
 
     void Close() {
-        if (_isRun) {
-            _isRun = false;
-            _sem.Wait();
-        }
+        _thread.Close();
     }
+
 private:
-    void OnRun() {
-        while (_isRun) {
+    void OnRun(CellThread* pThread) {
+        while (pThread->IsRun()) {
             if (!_tasksBuf.empty()) {
                 std::lock_guard<std::mutex> lock(_mutex);
                 for (auto pTask : _tasksBuf) {
@@ -58,7 +56,6 @@ private:
             }
             _tasks.clear();
         }
-        _sem.Wakeup();
     }
 };
 #endif

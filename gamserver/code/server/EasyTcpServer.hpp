@@ -13,12 +13,54 @@
 
 class EasyTcpServer: public INetEvent {
 private:
-    SOCKET _sock;
-    std::atomic_int _clientCount; 
+    CellThread _thread;
     std::vector<CellServer *> _cellServer;//使用指针的原因是栈空间只有1M到2M
     CellTimestame _tTime;
+    SOCKET _sock;
+protected:
+    std::atomic_int _clientCount;
     std::atomic_int _msgCount;
     std::atomic_int _recvCount;
+
+private:
+    //处理网络消息
+    void OnRun(CellThread* pThread) {
+        while (pThread->IsRun()) {
+            Time4Msg();
+            fd_set fdRead;
+            //fd_set fdWrite;
+            //fd_set fdExcept;
+            FD_ZERO(&fdRead);
+            //FD_ZERO(&fdWrite);
+            //FD_ZERO(&fdExcept);
+
+            FD_SET(_sock, &fdRead);
+            //FD_SET(_sock, &fdWrite);
+            //FD_SET(_sock, &fdExcept);
+            //伯克利 socket
+            /*param
+            1.在windows上没有意义, fd_set 所有集合中 描述符(socket)范围, 而不是数量
+            2.可读集合
+            3.可写集合
+            4.异常集合
+            5.超时时间
+            */
+
+            timeval time = { 0, 10 };//加入这个参数为null 可以当做一个必须要客户端请求的服务器
+            int ret = select(_sock + 1, &fdRead, nullptr, nullptr, &time); //select 性能瓶颈 最大的集合只有64
+            if (ret < 0) {
+                printf("EasyTcpServer.OnRun select error exit\n");
+                pThread->Exit();
+                break;
+            }
+            if (FD_ISSET(_sock, &fdRead)) {
+                FD_CLR(_sock, &fdRead);
+                //-accept-
+                Accept();
+            }
+        }
+    }
+
 public:
     EasyTcpServer() {
         _sock = INVALID_SOCKET;
@@ -28,7 +70,7 @@ public:
     }
 
     virtual ~EasyTcpServer() {
-        Close();
+       
     }
 
     //初始化socket
@@ -98,6 +140,10 @@ public:
             server->SetNetObj(this);
             server->Start();
         }
+
+        _thread.Start(nullptr, [this](CellThread* pThread) {
+            OnRun(pThread);
+        });
     }
 
     //接受客户端连接
@@ -133,6 +179,7 @@ public:
 
     //关闭socket
     void Close() {
+        _thread.Close();
         if (INVALID_SOCKET == _sock) {
             return;
         }
@@ -150,50 +197,6 @@ public:
         close(_sock);
 #endif
         _sock = INVALID_SOCKET;
-    }
-    //处理网络消息
-    bool OnRun() {
-        if (!IsRun()) {
-            return false;
-        }
-        Time4Msg();
-        fd_set fdRead;
-        //fd_set fdWrite;
-        //fd_set fdExcept;
-        FD_ZERO(&fdRead);
-        //FD_ZERO(&fdWrite);
-        //FD_ZERO(&fdExcept);
-
-        FD_SET(_sock, &fdRead);
-        //FD_SET(_sock, &fdWrite);
-        //FD_SET(_sock, &fdExcept);
-        //伯克利 socket
-        /*param
-        1.在windows上没有意义, fd_set 所有集合中 描述符(socket)范围, 而不是数量
-        2.可读集合
-        3.可写集合
-        4.异常集合
-        5.超时时间
-        */
-
-        timeval time = { 0, 10 };//加入这个参数为null 可以当做一个必须要客户端请求的服务器
-        int ret = select(_sock + 1, &fdRead, nullptr, nullptr, &time); //select 性能瓶颈 最大的集合只有64
-        if (ret < 0) {
-            printf("select 结束 \n");
-            Close();
-            return false;
-        }
-        if (FD_ISSET(_sock, &fdRead)) {
-            FD_CLR(_sock, &fdRead);
-            //-accept-
-            Accept();
-        }
-        return true;
-    }
-
-    //是否工作中
-    bool IsRun() {
-        return _sock != INVALID_SOCKET;
     }
 
     //响应网络消息
@@ -239,7 +242,6 @@ public:
             //printf("recv <socket = %d>, CMD_LOGOUT dataLen = %d, account = %s\n", cSock, logoutData->dataLen, logoutData->account);
 
             //LogoutResult logoutRes;
-
             //pClient->SendData(&logoutRes);
         }break;
         case CMD_HEART: {

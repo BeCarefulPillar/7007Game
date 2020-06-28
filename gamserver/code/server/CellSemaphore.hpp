@@ -7,14 +7,14 @@
 
 class CellSemaphore {
 private:
-    //阻塞--条件变量
+    //闃诲--鏉′欢鍙橀噺
     std::condition_variable _cv;
     std::mutex _mutex;
-    int _wait;
-    int _wakeup;
+    int _wait = 0;
+    int _wakeup = 0;
 
 public:
-    //阻塞当前线程
+    //闃诲褰撳墠绾跨▼
     void Wait() {
         std::unique_lock<std::mutex> lock(_mutex);
         if (--_wait < 0) {

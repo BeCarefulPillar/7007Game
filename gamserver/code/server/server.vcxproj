@@ -171,6 +171,7 @@
     <ClInclude Include="CellClient.hpp" />
     <ClInclude Include="CellServer.hpp" />
     <ClInclude Include="CellTask.hpp" />
+    <ClInclude Include="CellThread.hpp" />
     <ClInclude Include="CellTimestame.hpp" />
     <ClInclude Include="EasyTcpServer.hpp" />
     <ClInclude Include="INetEvent.hpp" />
