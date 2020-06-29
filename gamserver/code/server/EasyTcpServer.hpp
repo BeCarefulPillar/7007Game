@@ -28,7 +28,7 @@
 #endif // !SEND_BUFF_SIZE
 
 #ifndef CELL_SERVER_THEARD
-#define CELL_SERVER_THEARD 4
+#define CELL_SERVER_THEARD 1
 #endif
 
 #include <stdio.h>
@@ -548,9 +548,12 @@ public:
             Login *loginData = (Login *)pHd;
             /*printf("recv <socket = %d> ,CMD_LOGIN dataLen = %d,account = %s,password=%s \n", pClient->GetSocket(), loginData->dataLen, loginData->account, loginData->password);*/
 
+     
             auto loginRes = std::make_shared<LoginResult>(
                 );
-            pCellServer->AddSendTask(pClient, (DataHeaderPtr&)loginRes);
+            strcpy(loginRes->data, "ssss");
+            /* pClient->SendData((DataHeaderPtr&)loginRes);*/
+           pCellServer->AddSendTask(pClient, (DataHeaderPtr&)loginRes);
         } break;
         case CMD_LOGOUT: {
             Logout *logoutData = (Logout *)pHd;

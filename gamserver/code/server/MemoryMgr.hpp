@@ -92,7 +92,7 @@ public:
             pReturn->_nRef = 1;
             pReturn->_pAlloc = nullptr;
             pReturn->_pNext = nullptr;
-            printf("malloc = %x, id = %d, size = %d \n", pReturn, pReturn->_nId, nSize);
+            //printf("malloc = %x, id = %d, size = %d \n", pReturn, pReturn->_nId, nSize);
         } else {
             pReturn = _pHeader;
             _pHeader = _pHeader->_pNext;
@@ -141,8 +141,8 @@ public:
 
 class MemoryMgr {
 private:
-    MemoryAlloctor<64, 1000000>_mem64;
-    MemoryAlloctor<128, 1000000>_mem128;
+    MemoryAlloctor<64, 10000>_mem64;
+    MemoryAlloctor<128, 10000>_mem128;
     MemoryAlloc* _szAlloc[MAX_MEMORY_SIZE + 1];//ÄÚ´æ³ØÓ³ÉäÊý×é
    //MemoryAlloctor<128, 10>_mem64;
 private:
@@ -176,7 +176,7 @@ public:
             pReturn->_nRef = 1;
             pReturn->_pAlloc = nullptr;
             pReturn->_pNext = nullptr;
-            //printf("malloc = %x, id = %d, size = %d \n", pReturn, pReturn->_nId, nSize);
+            printf("malloc = %x, id = %d, size = %d \n", pReturn, pReturn->_nId, nSize);
             void* a = (char*)pReturn + sizeof(MemoryBlock);
             return ((char*)pReturn + sizeof(MemoryBlock));
         }
@@ -190,7 +190,7 @@ public:
             pBlock->_pAlloc->FreeMemory(pMem);
         } else {
             if (--pBlock->_nRef == 0) {
-                //printf("free = %x, id = %d \n", pBlock, pBlock->_nId);
+                printf("free = %x, id = %d \n", pBlock, pBlock->_nId);
                 free(pBlock);
             }
         }

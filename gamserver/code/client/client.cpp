@@ -4,8 +4,8 @@
 #include "CellTimestame.hpp"
 
 bool g_run = true;
-const int cCount = 1000;
-const int tCount = 4;
+const int cCount = 100;
+const int tCount = 1;
 EasyTcpClient *client[cCount];
 std::atomic_int sendCount = 0;
 std::atomic_int readyCount = 0;
@@ -36,7 +36,13 @@ void cmdThread(EasyTcpClient * client) {
     }
 }
 
-void sendTheard(int id) {
+void recvThread(int begin, int end) {
+    for (int i = begin; i < end; i++) {
+        client[i]->OnRun();
+    }
+}
+
+void sendThread(int id) {
     int begin = (int)(id - 1) * cCount / tCount;
     int end = (int)(id) * cCount / tCount;
     //防止抢占资源
@@ -54,7 +60,10 @@ void sendTheard(int id) {
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
-    
+
+    std::thread t(recvThread, begin, end);
+    t.detach();
+
     //client.InitSocket();
     const int msgCount = 1;
     Login loginData[msgCount];
@@ -71,9 +80,9 @@ void sendTheard(int id) {
             if (SOCKET_ERROR != client[i]->SendData(loginData, nLen)) {
                 sendCount+=msgCount;
             }
-            client[i]->OnRun();
         }
 
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
     //---------------------------
     for (int i = begin; i < end; i++) {
@@ -88,7 +97,7 @@ int main() {
     cmd.detach(); //和主线程分离
 
     for (int i = 0; i < tCount; i++) {
-        std::thread send(sendTheard, i + 1);
+        std::thread send(sendThread, i + 1);
         send.detach(); //和主线程分离
         //send.join(); //阻塞主线程，这里可以使用
     }

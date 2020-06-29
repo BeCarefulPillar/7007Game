@@ -83,7 +83,7 @@ public:
             pReturn->_nRef = 1;
         }
 
-        printf("AllocObjMemory = %x, id = %d, size = %d \n", pReturn, pReturn->_nId, nSize);
+        //printf("AllocObjMemory = %x, id = %d, size = %d \n", pReturn, pReturn->_nId, nSize);
         return ((char*)pReturn + sizeof(NodeHead));
     }
 
@@ -92,7 +92,7 @@ public:
         NodeHead* pHead = (NodeHead*)(pData - sizeof(NodeHead));
         assert(1 == pHead->_nRef);
 
-        printf("FreeObjMemory = %x, id = %d\n", pHead, pHead->_nId);
+        //printf("FreeObjMemory = %x, id = %d\n", pHead, pHead->_nId);
         if (pHead->_bPool) {
             std::lock_guard<std::mutex> lg(_mutex);
             if (--pHead->_nRef != 0) {
@@ -127,7 +127,6 @@ public:
     static T* CreateObj(Args... arg) {
         T* obj = new T(arg...);
         return obj;
-
     }
 
     static void DestoryObj(T* obj) {
