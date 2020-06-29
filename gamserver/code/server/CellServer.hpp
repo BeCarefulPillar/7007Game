@@ -1,4 +1,4 @@
-#ifndef _CELL_SERVER_HPP
+ï»¿#ifndef _CELL_SERVER_HPP
 #define _CELL_SERVER_HPP
 
 #include "INetEvent.hpp"
@@ -10,9 +10,9 @@
 
 class CellServer {
 private:
-    //ÕıÊ½
+    //æ­£å¼
     std::map<SOCKET, CellClient *> _client;
-    //»º³å
+    //ç¼“å†²
     std::vector<CellClient *> _clientBuff;
     std::mutex _mutex;
     INetEvent* _pNetEvent;
@@ -63,7 +63,7 @@ public:
 
     void AddClient(CellClient* pClient) {
         std::lock_guard<std::mutex> lock(_mutex);
-        _clientBuff.push_back(pClient); //ÔÚÏß³ÌÖĞÒªÊ¹ÓÃ£¬ËùÒÔÒª¼ÓËø
+        _clientBuff.push_back(pClient); //åœ¨çº¿ç¨‹ä¸­è¦ä½¿ç”¨ï¼Œæ‰€ä»¥è¦åŠ é”
     }
 
     void Start() {
@@ -79,7 +79,7 @@ public:
         _taskServer.Start();
     }
 
-    //¹Ø±Õsocket
+    //å…³é—­socket
     void Close() {
         _taskServer.Close();
         _thread.Close();
@@ -120,7 +120,7 @@ public:
             }
 
             timeval t{0, 1};
-            int ret = select(_maxSocket + 1, &fdRead, nullptr, nullptr, &t); //select ĞÔÄÜÆ¿¾± ×î´óµÄ¼¯ºÏÖ»ÓĞ64
+            int ret = select(_maxSocket + 1, &fdRead, nullptr, nullptr, &t); //select æ€§èƒ½ç“¶é¢ˆ æœ€å¤§çš„é›†åˆåªæœ‰64
             if (ret < 0) {
                 printf("Cellserver %d.OnRun.select Error exit\n", _id);
                 pThread->Exit();
@@ -140,9 +140,9 @@ public:
         auto dt = nowTime - _oldTime;
         _oldTime = nowTime;
         for (auto iter = _client.begin(); iter != _client.end();) {
-            //·¢ËÍ¼ì²â
+            //å‘é€æ£€æµ‹
             iter->second->CheckSend(dt);
-            //ĞÄÌø¼ì²â
+            //å¿ƒè·³æ£€æµ‹
             if (iter->second->CheckHeart(dt)){
                 if (_pNetEvent) {
                     _pNetEvent->OnNetLevel(iter->second);
@@ -201,7 +201,7 @@ public:
 
     }
 
-    //½ÓÊÕÊı¾İ ´¦ÀíÕ³°ü ²ğ·Ö°ü
+    //æ¥æ”¶æ•°æ® å¤„ç†ç²˜åŒ… æ‹†åˆ†åŒ…
     int RecvData(CellClient* pClient) {
         char* szRevc = pClient->MsgBuf() + pClient->GetLastPos();
         int nLen = recv(pClient->GetSocket(), szRevc, REVC_BUFF_SIZE - pClient->GetLastPos(), 0);
@@ -210,19 +210,19 @@ public:
         }
         //pClient->ResetDTHeart();
         _pNetEvent->OnNetRecv(pClient);
-        //ÏûÏ¢»º³åÇøÊı¾İÎ²²¿Ïòºó
+        //æ¶ˆæ¯ç¼“å†²åŒºæ•°æ®å°¾éƒ¨å‘å
         pClient->SetLastPos(pClient->GetLastPos() + nLen);
-        //ÅĞ¶ÏÏûÏ¢³¤¶È´óÓÚÏûÏ¢Í·
+        //åˆ¤æ–­æ¶ˆæ¯é•¿åº¦å¤§äºæ¶ˆæ¯å¤´
         while (pClient->GetLastPos() >= sizeof(DataHeader)) {
-            //µ±Ç°ÏûÏ¢
+            //å½“å‰æ¶ˆæ¯
             DataHeader *hd = (DataHeader*)pClient->MsgBuf();
             if (pClient->GetLastPos() >= hd->dataLen) {
                 int msgLen = hd->dataLen;
-                //´¦ÀíÏûÏ¢
+                //å¤„ç†æ¶ˆæ¯
                 OnNetMsg(pClient, hd);
-                //Êı¾İÇ°ÒÆ
+                //æ•°æ®å‰ç§»
                 memcpy(pClient->MsgBuf(), pClient->MsgBuf() + msgLen, pClient->GetLastPos() - msgLen);
-                //ÏûÏ¢Î²²¿Ç°ÒÆ
+                //æ¶ˆæ¯å°¾éƒ¨å‰ç§»
                 pClient->SetLastPos(pClient->GetLastPos() - msgLen);
             } else {
                 break;

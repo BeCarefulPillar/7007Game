@@ -30,7 +30,7 @@ int main() {
         char cmdMsg[32];
         scanf("%s", cmdMsg);
         if (0 == strcmp(cmdMsg, "exit")) {
-            printf("线程退出 \n");
+            printf("thread exit \n");
             gRun = false;
             break;
         } else {

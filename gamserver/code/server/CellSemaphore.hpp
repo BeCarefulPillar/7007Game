@@ -1,4 +1,4 @@
-#ifndef _CELL_SEMAPHORE_HPP_
+﻿#ifndef _CELL_SEMAPHORE_HPP_
 #define _CELL_SEMAPHORE_HPP_
 
 #include <chrono>

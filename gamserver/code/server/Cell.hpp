@@ -1,12 +1,12 @@
-#ifndef _CELL_HPP
+ï»¿#ifndef _CELL_HPP
 #define _CELL_HPP
 
 #ifdef _WIN32
 #define FD_SETSIZE 1024
-#define WIN32_LEAN_AND_MEAN //±ÜÃâwindows.h ºÍ WinSock2.h ÖĞµÄºê¶¨ÒåÖØ¸´
+#define WIN32_LEAN_AND_MEAN //é¿å…windows.h å’Œ WinSock2.h ä¸­çš„å®å®šä¹‰é‡å¤
 #include <windows.h>
 #include <WinSock2.h>
-//¾²Ì¬Á´½Ó¿â winÆ½Ì¨
+//é™æ€é“¾æ¥åº“ winå¹³å°
 //#pragma comment(lib, "ws2_32.lib")
 #else
 #include <unistd.h> //uni std

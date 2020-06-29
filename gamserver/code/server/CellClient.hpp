@@ -1,4 +1,4 @@
-#ifndef _CELL_CLIENT_HPP
+﻿#ifndef _CELL_CLIENT_HPP
 #define _CELL_CLIENT_HPP
 #include "Cell.hpp"
 //MS

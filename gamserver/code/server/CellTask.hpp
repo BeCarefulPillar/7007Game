@@ -1,4 +1,4 @@
-#ifndef _CELL_TASK_hpp
+ï»¿#ifndef _CELL_TASK_hpp
 #define _CELL_TASK_hpp
 
 #include<thread>
@@ -10,9 +10,9 @@
 class CellTaskServer {
     typedef std::function<void()> CellTask;
 private:
-    //Êı¾İ
+    //æ•°æ®
     std::list<CellTask> _tasks;
-    //»º³å
+    //ç¼“å†²
     std::list<CellTask> _tasksBuf;
     std::mutex _mutex;
     CellThread _thread;

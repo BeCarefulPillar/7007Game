@@ -1,10 +1,10 @@
-#ifndef _CELL_TIMESTAME_hpp
+ï»¿#ifndef _CELL_TIMESTAME_hpp
 #define _CELL_TIMESTAME_hpp
 #include <chrono>
 
 class CellTime {
 public:
-    //»ñÈ¡µ±Ç°Ê±¼ä´Á£¨ms£©
+    //è·å–å½“å‰æ—¶é—´æˆ³ï¼ˆmsï¼‰
     static time_t GetNowInMillSec() {
         return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
     }
