@@ -10,7 +10,7 @@ class MemoryAlloc;
 
 class MemoryBlock {
 public:
-    size_t _nId = 0;
+    int _nId = 0;
     size_t _nRef = 0;
     MemoryAlloc* _pAlloc;
     MemoryBlock* _pNext;
