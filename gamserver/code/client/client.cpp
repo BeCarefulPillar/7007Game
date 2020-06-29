@@ -4,8 +4,8 @@
 #include "CellTimestame.hpp"
 
 bool g_run = true;
-const int cCount = 1000;
-const int tCount = 4;
+const int cCount = 3;
+const int tCount = 1;
 EasyTcpClient *client[cCount];
 std::atomic_int sendCount = 0;
 std::atomic_int readyCount = 0;
@@ -36,6 +36,18 @@ void cmdThread(EasyTcpClient * client) {
     }
 }
 
+void recvTheard(int begin, int end) {
+    CellTimestame t;
+    while (g_run) {
+        for (int i = begin; i < end; i++) {
+            if (t.GetElapsedSecond() > 3.f&&i == begin) {
+                continue;
+            }
+            client[i]->OnRun();
+        }
+    }
+}
+
 void sendTheard(int id) {
     int begin = (int)(id - 1) * cCount / tCount;
     int end = (int)(id) * cCount / tCount;
@@ -54,7 +66,10 @@ void sendTheard(int id) {
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
-    
+   
+//     std::thread t1(recvTheard, begin, end);
+//     t1.detach();
+
     //client.InitSocket();
     const int msgCount = 1;
     Login loginData[msgCount];
@@ -71,8 +86,8 @@ void sendTheard(int id) {
             if (SOCKET_ERROR != client[i]->SendData(loginData, nLen)) {
                 sendCount+=msgCount;
             }
-            client[i]->OnRun();
         }
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
     //---------------------------
     for (int i = begin; i < end; i++) {
@@ -100,7 +115,6 @@ int main() {
             _tTime.Update();
             sendCount = 0;
         }
-        Sleep(1000);
     }
 
     printf("client out \n");

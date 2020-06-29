@@ -12,6 +12,7 @@
 #include <unistd.h> //uni std
 #include <arpa/inet.h>
 #include <string.h>
+#include <signal.h>
 
 #define SOCKET int
 #define INVALID_SOCKET  (SOCKET)(~0)
@@ -27,7 +28,7 @@
 #endif // !SEND_BUFF_SIZE
 
 #ifndef CELL_SERVER_THEARD
-#define CELL_SERVER_THEARD 4
+#define CELL_SERVER_THEARD 1
 #endif
 
 #include "MessageHeader.hpp"

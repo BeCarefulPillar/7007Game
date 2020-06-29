@@ -208,7 +208,8 @@ public:
         if (nLen <= 0) {
             return -1;
         }
-        //pClient->ResetDTHeart();
+        pClient->ResetDTHeart();
+        
         _pNetEvent->OnNetRecv(pClient);
         //消息缓冲区数据尾部向后
         pClient->SetLastPos(pClient->GetLastPos() + nLen);

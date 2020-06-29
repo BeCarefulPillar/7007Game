@@ -82,6 +82,9 @@ public:
         WORD ver = MAKEWORD(2, 2); //socket版本 2.x环境
         WSADATA data;
         WSAStartup(ver, &data);
+#else
+        //忽略异常信号，默认情况会导致进程退出
+        signal(SIGPIPE, SIG_IGN);
 #endif
         //---------------------------
         //-socket
@@ -233,7 +236,7 @@ public:
             /*printf("recv <socket = %d> ,CMD_LOGIN dataLen = %d,account = %s,password=%s \n", pClient->GetSocket(), loginData->dataLen, loginData->account, loginData->password);*/
             LoginResult loginRes;
             strcpy(loginRes.data, "ssss");
-            pClient->SendData(&loginRes);
+            pClient->SendDataReal(&loginRes);
 //             LoginResult* loginRes =new LoginResult();
 //             pCellServer->AddSendTask(pClient, loginRes);
         } break;

@@ -99,7 +99,7 @@ public:
         FD_SET(_sock, &fdRead);
 
         timeval t = { 0, 10 };
-        int ret = select((int)_sock + 1, &fdRead, 0, 0, &t);
+        int ret = select((int)_sock + 1, &fdRead, 0, 0, nullptr);
         if (ret < 0) {
             printf("客户端关闭1 \n");
             Close();
@@ -163,7 +163,7 @@ public:
         switch (hd->cmd) {
         case CMD_LOGIN_RESULT: {
             LoginResult *loginRes = (LoginResult *)hd;
-            //printf("recv CMD_LOGIN_RESULT dataLen = %d, %s \n", loginRes->dataLen, loginRes->data);
+            printf("recv CMD_LOGIN_RESULT dataLen = %d, %s \n", loginRes->dataLen, loginRes->data);
         } break;
         case CMD_LOGOUT_RESULT: {
             LogoutResult *logoutData = (LogoutResult *)hd;
