@@ -168,6 +168,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Cell.hpp" />
+    <ClInclude Include="CellBuffer.hpp" />
     <ClInclude Include="CellClient.hpp" />
     <ClInclude Include="CellServer.hpp" />
     <ClInclude Include="CellTask.hpp" />

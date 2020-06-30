@@ -1,6 +1,7 @@
 ﻿#ifndef _CELL_CLIENT_HPP
 #define _CELL_CLIENT_HPP
 #include "Cell.hpp"
+#include "CellBuffer.hpp"
 //MS
 #define  CELLENT_HEART_DEAD_TIME 60000
 //指定时间内清空发送缓冲区
@@ -9,24 +10,17 @@
 class CellClient {
 private:
     SOCKET _sock;
-    char _szMsgBuf[REVC_BUFF_SIZE]; //第二缓冲区，消息缓冲区
-    int _lastPos;//消息缓冲区结尾
     sockaddr_in _addr;
-    int _lastSendPos;//消息缓冲区结尾
-    char _szSendBuf[SEND_BUFF_SIZE];
+    CellBuffer _sendBuff;
+    CellBuffer _recvBuff;
     //心跳死亡计时
     time_t _dtHeart;
     //上次发送时间
     time_t _dtSend;
-    //发送缓冲区写满次数
-    int _sendFullCount = 0;
 public:
-    CellClient(SOCKET sock, sockaddr_in addr) {
+    CellClient(SOCKET sock, sockaddr_in addr):
+        _sendBuff(SEND_BUFF_SIZE), _recvBuff(REVC_BUFF_SIZE){
         _sock = sock;
-        _lastPos = 0;
-        _lastSendPos = 0;
-        memset(_szMsgBuf, 0, sizeof(_szMsgBuf));
-        memset(_szSendBuf, 0, sizeof(_szSendBuf));
         _addr = addr;
         ResetDTHeart();
         ResetDTSend();
@@ -44,16 +38,22 @@ public:
         return _sock;
     }
 
-    char* MsgBuf() {
-        return _szMsgBuf;
+    int RecvData() {
+        return _recvBuff.Read2Socket(_sock);
     }
 
-    int GetLastPos() {
-        return _lastPos;
+    bool HasMsg() {
+        return _recvBuff.HasMsg();
     }
 
-    void SetLastPos(int lastPos) {
-        _lastPos = lastPos;
+    DataHeader* FrontMsg() {
+        return (DataHeader*)_recvBuff.Data();
+    }
+    
+    void PopFrontMsg() {
+        if (HasMsg()) {
+            _recvBuff.Pop(FrontMsg()->dataLen);
+        }
     }
 
     void SendDataReal(DataHeader* pHd) {
@@ -63,13 +63,8 @@ public:
 
     //立即发送数据
     int SendDataReal() {
-        int ret = 0;
-        if (_lastSendPos > 0 && INVALID_SOCKET != _sock) {
-            ret = send(_sock, _szSendBuf, _lastSendPos, 0);
-            _sendFullCount = 0;
-            _lastSendPos = 0;
-            ResetDTSend();
-        }
+        int ret = _sendBuff.Write2Socket(_sock);
+        ResetDTSend();
         return ret;
     }
 
@@ -81,17 +76,10 @@ public:
 
         int nSendLen = hd->dataLen;
         const char* pSendData = (const char*)hd;
-        if (_lastSendPos + nSendLen <= SEND_BUFF_SIZE) {
-            memcpy(_szSendBuf + _lastSendPos, pSendData, nSendLen);
-            _lastSendPos += nSendLen;
-            if (_lastSendPos + nSendLen == SEND_BUFF_SIZE) {
-                _sendFullCount++;
-            }
-            return nSendLen;
-        } else {
-            _sendFullCount++;
-            printf("full 111111111111\n");
+        if (_sendBuff.Push((const char*)hd, hd->dataLen)) {
+            return hd->dataLen;
         }
+
         return ret;
     }
 

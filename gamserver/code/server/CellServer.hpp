@@ -254,31 +254,20 @@ public:
 
     //接收数据 处理粘包 拆分包
     int RecvData(CellClient* pClient) {
-        char* szRevc = pClient->MsgBuf() + pClient->GetLastPos();
-        int nLen = recv(pClient->GetSocket(), szRevc, REVC_BUFF_SIZE - pClient->GetLastPos(), 0);
+        int nLen = pClient->RecvData();
         if (nLen <= 0) {
             return -1;
         }
         pClient->ResetDTHeart();
-        
+        //出发接受网络事件
         _pNetEvent->OnNetRecv(pClient);
-        //消息缓冲区数据尾部向后
-        pClient->SetLastPos(pClient->GetLastPos() + nLen);
-        //判断消息长度大于消息头
-        while (pClient->GetLastPos() >= sizeof(DataHeader)) {
-            //当前消息
-            DataHeader *hd = (DataHeader*)pClient->MsgBuf();
-            if (pClient->GetLastPos() >= hd->dataLen) {
-                int msgLen = hd->dataLen;
+        //判断完整消息
+        while (pClient->HasMsg()) {
                 //处理消息
-                OnNetMsg(pClient, hd);
+                OnNetMsg(pClient, pClient->FrontMsg());
                 //数据前移
-                memcpy(pClient->MsgBuf(), pClient->MsgBuf() + msgLen, pClient->GetLastPos() - msgLen);
-                //消息尾部前移
-                pClient->SetLastPos(pClient->GetLastPos() - msgLen);
-            } else {
-                break;
-            }
+                //移除消息队列（缓冲区）最前的一条数据
+                pClient->PopFrontMsg();
         }
 
         return 0;

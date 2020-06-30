@@ -4,8 +4,8 @@
 #include "CellTimestame.hpp"
 
 bool g_run = true;
-const int cCount = 3;
-const int tCount = 1;
+const int cCount = 1000;
+const int tCount = 4;
 EasyTcpClient *client[cCount];
 std::atomic_int sendCount = 0;
 std::atomic_int readyCount = 0;
