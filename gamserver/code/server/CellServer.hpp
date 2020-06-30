@@ -103,10 +103,12 @@ public:
             }
 
             fd_set fdRead;
-            FD_ZERO(&fdRead);
-
+            fd_set fdWrite;
+            fd_set fdExc;
+            
             if (_clientChange) {
                 _clientChange = false;
+                FD_ZERO(&fdRead);
                 _maxSocket = _client.begin()->second->GetSocket();
                 for (auto c : _client) {
                     FD_SET(c.first, &fdRead);
@@ -118,18 +120,27 @@ public:
             } else {
                 memcpy(&fdRead, &_fdReadBak, sizeof(fd_set));
             }
+            memcpy(&fdWrite, &_fdReadBak, sizeof(fd_set));
+            memcpy(&fdExc, &_fdReadBak, sizeof(fd_set));
 
             timeval t{0, 1};
-            int ret = select(_maxSocket + 1, &fdRead, nullptr, nullptr, &t); //select 性能瓶颈 最大的集合只有64
+            int ret = select(_maxSocket + 1, &fdRead, &fdWrite, &fdExc, &t); //select 性能瓶颈 最大的集合只有64
             if (ret < 0) {
                 printf("Cellserver %d.OnRun.select Error exit\n", _id);
                 pThread->Exit();
                 break;
-            } else if (ret == 0) {
-                continue;
-            }
+            } 
+//             else if (ret == 0) {
+//                 continue;
+//             }
 
             ReadData(fdRead);
+            WriteData(fdWrite);
+            WriteData(fdExc);
+            //printf("CellServer%d.OnRun.select: fdRead = %d,fdWrite = %d \n", _id, fdRead.fd_count, fdWrite.fd_count);
+            if (fdExc.fd_count > 0){
+                printf("#### fdExc = %d\n", _id, fdExc.fd_count);
+            }
             CheckTime();
         }
         return true;
@@ -141,7 +152,7 @@ public:
         _oldTime = nowTime;
         for (auto iter = _client.begin(); iter != _client.end();) {
             //发送检测
-            iter->second->CheckSend(dt);
+            //iter->second->CheckSend(dt);
             //心跳检测
             if (iter->second->CheckHeart(dt)){
                 if (_pNetEvent) {
@@ -157,6 +168,46 @@ public:
             }
 
         }
+    }
+
+    void WriteData(fd_set& fdWrite) {
+#ifdef WIN32
+        for (int i = 0; i < fdWrite.fd_count; i++) {
+            auto iter = _client.find(fdWrite.fd_array[i]);
+            if (iter != _client.end()) {
+                int ret = iter->second->SendDataReal();
+                if (ret == -1) {
+                    if (_pNetEvent) {
+                        _pNetEvent->OnNetLevel(iter->second);
+                    }
+                    _clientChange = true;
+                    delete iter->second;
+                    _client.erase(iter);
+                }
+            }
+        }
+
+#else
+        std::vector <CellClient*> temp;
+        for (auto c : _client) {
+            if (FD_ISSET(c.first, &fdWrite) {
+                int ret = iter->second->SendDataReal();
+                if (ret == -1) {
+                    if (_pNetEvent) {
+                        _pNetEvent->OnNetLevel(c.second);
+                    }
+                    temp.push_back(c.second);
+                    _clientChange = true;
+                }
+            }
+        }
+
+        for (auto client : temp) {
+            _client.erase(client->GetSocket());
+            delete client;
+        }
+#endif // WIN32
+
     }
 
     void ReadData(fd_set& fdRead) {

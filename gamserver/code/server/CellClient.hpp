@@ -18,6 +18,8 @@ private:
     time_t _dtHeart;
     //上次发送时间
     time_t _dtSend;
+    //发送缓冲区写满次数
+    int _sendFullCount = 0;
 public:
     CellClient(SOCKET sock, sockaddr_in addr) {
         _sock = sock;
@@ -61,14 +63,12 @@ public:
 
     //立即发送数据
     int SendDataReal() {
-        int ret = SOCKET_ERROR;
-        if (_lastSendPos > 0 && SOCKET_ERROR != _sock) {
+        int ret = 0;
+        if (_lastSendPos > 0 && INVALID_SOCKET != _sock) {
             ret = send(_sock, _szSendBuf, _lastSendPos, 0);
+            _sendFullCount = 0;
             _lastSendPos = 0;
             ResetDTSend();
-            if (SOCKET_ERROR == ret) {
-                return ret;
-            }
         }
         return ret;
     }
@@ -81,27 +81,16 @@ public:
 
         int nSendLen = hd->dataLen;
         const char* pSendData = (const char*)hd;
-        while (true) {
-            if (_lastSendPos + nSendLen >= SEND_BUFF_SIZE) {
-                int nCopyLen = SEND_BUFF_SIZE - _lastSendPos;
-                memcpy(_szSendBuf + _lastSendPos, pSendData, nCopyLen);
-                //计算剩余数据位置
-                pSendData += nCopyLen;
-                //计算剩余长度
-                nSendLen -= nCopyLen;
-                //send
-                ret = send(_sock, _szSendBuf, SEND_BUFF_SIZE, 0);
-                _lastSendPos = 0;
-                //重置时间
-                ResetDTSend();
-                if (SOCKET_ERROR == ret) {
-                    return ret;
-                }
-            } else {
-                memcpy(_szSendBuf + _lastSendPos, pSendData, nSendLen);
-                _lastSendPos += nSendLen;
-                break;
+        if (_lastSendPos + nSendLen <= SEND_BUFF_SIZE) {
+            memcpy(_szSendBuf + _lastSendPos, pSendData, nSendLen);
+            _lastSendPos += nSendLen;
+            if (_lastSendPos + nSendLen == SEND_BUFF_SIZE) {
+                _sendFullCount++;
             }
+            return nSendLen;
+        } else {
+            _sendFullCount++;
+            printf("full 111111111111\n");
         }
         return ret;
     }

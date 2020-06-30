@@ -28,7 +28,7 @@
 #endif // !SEND_BUFF_SIZE
 
 #ifndef CELL_SERVER_THEARD
-#define CELL_SERVER_THEARD 1
+#define CELL_SERVER_THEARD 4
 #endif
 
 #include "MessageHeader.hpp"

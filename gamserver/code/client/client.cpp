@@ -67,8 +67,8 @@ void sendTheard(int id) {
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
    
-//     std::thread t1(recvTheard, begin, end);
-//     t1.detach();
+    std::thread t1(recvTheard, begin, end);
+    t1.detach();
 
     //client.InitSocket();
     const int msgCount = 1;
