@@ -21,6 +21,9 @@
     <ClCompile Include="CellSemaphore.hpp">
       <Filter>头文件</Filter>
     </ClCompile>
+    <ClCompile Include="CellLog.hpp">
+      <Filter>头文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EasyTcpServer.hpp">

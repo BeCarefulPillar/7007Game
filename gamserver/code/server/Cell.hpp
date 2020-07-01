@@ -34,5 +34,5 @@
 #include "MessageHeader.hpp"
 #include "CellTimestame.hpp"
 #include "CellTask.hpp"
-
+#include "CellLog.hpp"
 #endif

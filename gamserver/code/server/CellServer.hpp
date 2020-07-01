@@ -126,7 +126,7 @@ public:
             timeval t{0, 1};
             int ret = select(_maxSocket + 1, &fdRead, &fdWrite, &fdExc, &t); //select 性能瓶颈 最大的集合只有64
             if (ret < 0) {
-                printf("Cellserver %d.OnRun.select Error exit\n", _id);
+                CellLog::Info("Cellserver %d.OnRun.select Error exit\n", _id);
                 pThread->Exit();
                 break;
             } 
@@ -137,9 +137,9 @@ public:
             ReadData(fdRead);
             WriteData(fdWrite);
             WriteData(fdExc);
-            //printf("CellServer%d.OnRun.select: fdRead = %d,fdWrite = %d \n", _id, fdRead.fd_count, fdWrite.fd_count);
+            //CellLog::Info("CellServer%d.OnRun.select: fdRead = %d,fdWrite = %d \n", _id, fdRead.fd_count, fdWrite.fd_count);
             if (fdExc.fd_count > 0){
-                printf("#### fdExc = %d\n", _id, fdExc.fd_count);
+                CellLog::Info("#### fdExc = %d\n", _id, fdExc.fd_count);
             }
             CheckTime();
         }
@@ -172,7 +172,7 @@ public:
 
     void WriteData(fd_set& fdWrite) {
 #ifdef WIN32
-        for (int i = 0; i < fdWrite.fd_count; i++) {
+        for (int i = 0; i < (int)fdWrite.fd_count; i++) {
             auto iter = _client.find(fdWrite.fd_array[i]);
             if (iter != _client.end()) {
                 int ret = iter->second->SendDataReal();
@@ -212,7 +212,7 @@ public:
 
     void ReadData(fd_set& fdRead) {
 #ifdef WIN32
-        for (int i = 0; i < fdRead.fd_count; i++) {
+        for (int i = 0; i < (int)fdRead.fd_count; i++) {
             auto iter = _client.find(fdRead.fd_array[i]);
             if (iter != _client.end()) {
                 int ret = RecvData(iter->second);
@@ -225,7 +225,7 @@ public:
                     _clientChange = true;
                 }
             } else {
-                printf("error socket \n");
+                CellLog::Info("error socket \n");
             }
         }
 

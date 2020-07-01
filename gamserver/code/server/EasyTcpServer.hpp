@@ -49,7 +49,7 @@ private:
             timeval time = { 0, 10 };//加入这个参数为null 可以当做一个必须要客户端请求的服务器
             int ret = select(_sock + 1, &fdRead, nullptr, nullptr, &time); //select 性能瓶颈 最大的集合只有64
             if (ret < 0) {
-                printf("EasyTcpServer.OnRun select error exit\n");
+                CellLog::Info("EasyTcpServer.OnRun select error exit\n");
                 pThread->Exit();
                 break;
             }
@@ -90,9 +90,9 @@ public:
         //-socket
         _sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP); //ipv4, 流数据, tcp
         if (INVALID_SOCKET == _sock) {
-            printf("socket初始化错误 \n");
+            CellLog::Info("socket初始化错误 \n");
         } else {
-            printf("socket初始化成功 \n");
+            CellLog::Info("socket初始化成功 \n");
         }
     }
     //绑定端口号
@@ -116,10 +116,10 @@ public:
 #endif
         int ret = bind(_sock, (sockaddr*)&_sin, sizeof(sockaddr_in));
         if (SOCKET_ERROR == ret) {
-            printf("连接端口<port = %d>错误 \n",port);
+            CellLog::Info("连接端口<port = %d>错误 \n",port);
             Close();
         } else {
-            printf("连接端口<port = %d> 成功 \n",port);
+            CellLog::Info("连接端口<port = %d> 成功 \n",port);
         }
         return ret;
     }
@@ -127,10 +127,10 @@ public:
     int Listen(int n) {
         int ret = listen(_sock, n);
         if (SOCKET_ERROR == ret) {//监听人数 
-            printf("监听错误 \n");
+            CellLog::Info("监听错误 \n");
             Close();
         } else {
-            printf("监听成功 \n");
+            CellLog::Info("监听成功 \n");
         }
         return ret;
     }
@@ -160,11 +160,11 @@ public:
         cSock = accept(_sock, (sockaddr*)&clientAddr, (socklen_t*)&nAddrLen);
 #endif
         if (INVALID_SOCKET == cSock) {
-            printf("客户端连接失败 \n");
+            CellLog::Info("客户端连接失败 \n");
         }
 
         AddClientToCellServer(new CellClient(cSock, clientAddr));
-        //printf("新客户端加入: cSock = %d,客户端数量 = %d, ip = %s \n", (int)cSock, _clientCount, inet_ntoa(clientAddr.sin_addr));
+        //CellLog::Info("新客户端加入: cSock = %d,客户端数量 = %d, ip = %s \n", (int)cSock, _clientCount, inet_ntoa(clientAddr.sin_addr));
         return cSock;
     }
 
@@ -206,7 +206,7 @@ public:
     void Time4Msg() {
         auto t1 = _tTime.GetElapsedSecond();
         if (t1 > 1.0) {
-            printf("thread<%d> ,time <%lf>, socket <%d>, client <%d>, recvCount<%d>, msg<%d>\n", (int)_cellServer.size(), t1, (int)_sock, (int)_clientCount, (int)_recvCount, (int)_msgCount);
+            CellLog::Info("thread<%d> ,time <%lf>, socket <%d>, client <%d>, recvCount<%d>, msg<%d>\n", (int)_cellServer.size(), t1, (int)_sock, (int)_clientCount, (int)_recvCount, (int)_msgCount);
             _tTime.Update();
             _recvCount = 0;
             _msgCount = 0;
@@ -233,7 +233,7 @@ public:
         switch (pHd->cmd) {
         case CMD_LOGIN: {
             Login *loginData = (Login *)pHd;
-            /*printf("recv <socket = %d> ,CMD_LOGIN dataLen = %d,account = %s,password=%s \n", pClient->GetSocket(), loginData->dataLen, loginData->account, loginData->password);*/
+            /*CellLog::Info("recv <socket = %d> ,CMD_LOGIN dataLen = %d,account = %s,password=%s \n", pClient->GetSocket(), loginData->dataLen, loginData->account, loginData->password);*/
             LoginResult loginRes;
             strcpy(loginRes.data, "ssss");
             if (SOCKET_ERROR == pClient->SendData(&loginRes)){
@@ -246,7 +246,7 @@ public:
         } break;
         case CMD_LOGOUT: {
             Logout *logoutData = (Logout *)pHd;
-            //printf("recv <socket = %d>, CMD_LOGOUT dataLen = %d, account = %s\n", cSock, logoutData->dataLen, logoutData->account);
+            //CellLog::Info("recv <socket = %d>, CMD_LOGOUT dataLen = %d, account = %s\n", cSock, logoutData->dataLen, logoutData->account);
 
             //LogoutResult logoutRes;
             //pClient->SendData(&logoutRes);

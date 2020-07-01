@@ -38,16 +38,16 @@ public:
         //    _nSize += n;
         //}
 
-        if (_nLastPos + nLen <= _nSize) {
+        if (_nLastPos + nLen <= (int)_nSize) {
             memcpy(_pBuff + _nLastPos, pData, nLen);
             _nLastPos += nLen;
-            if (_nLastPos + nLen == _nSize) {
+            if (_nLastPos + nLen == (int)_nSize) {
                 _fullCount++;
             }
             return true;
         } else {
             _fullCount++;
-            printf("send full count\n");
+            CellLog::Info("send full count\n");
         }
         return false;
     }
