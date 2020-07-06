@@ -56,6 +56,10 @@ private:
             }
             _tasks.clear();
         }
+
+        for (auto pTask : _tasksBuf) {
+            pTask();
+        }
     }
 };
 #endif
