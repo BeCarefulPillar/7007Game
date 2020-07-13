@@ -4,7 +4,7 @@
 #include "CellTimestame.hpp"
 
 bool g_run = true;
-const int cCount = 1000;
+const int cCount = 10;
 const int tCount = 4;
 EasyTcpClient *client[cCount];
 std::atomic_int sendCount = 0;
@@ -41,8 +41,6 @@ private:
 
 };
 
-
-
 void cmdThread(EasyTcpClient * client) {
     while (true) {
         char cmdMsg[32];
@@ -73,9 +71,9 @@ void recvTheard(int begin, int end) {
     CellTimestame t;
     while (g_run) {
         for (int i = begin; i < end; i++) {
-            if (t.GetElapsedSecond() > 3.f&&i == begin) {
-                continue;
-            }
+//             if (t.GetElapsedSecond() > 3.f&&i == begin) {
+//                 continue;
+//             }
             client[i]->OnRun();
         }
     }

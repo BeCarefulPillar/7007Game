@@ -103,7 +103,7 @@ public:
 
             fd_set fdRead;
             fd_set fdWrite;
-            fd_set fdExc;
+            //fd_set fdExc;
             
             if (_clientChange) {
                 _clientChange = false;
@@ -119,11 +119,27 @@ public:
             } else {
                 memcpy(&fdRead, &_fdReadBak, sizeof(fd_set));
             }
-            memcpy(&fdWrite, &_fdReadBak, sizeof(fd_set));
-            memcpy(&fdExc, &_fdReadBak, sizeof(fd_set));
+            //memcpy(&fdWrite, &_fdReadBak, sizeof(fd_set));
+            //memcpy(&fdExc, &_fdReadBak, sizeof(fd_set));
+            
+            bool bNeedWrite = false;
+            FD_ZERO(&fdWrite);
+            for (auto iter: _client) {
+                //检测可写客户端
+                if (iter.second->NeedWrite()) {
+                    FD_SET(iter.second->GetSocket(), &fdWrite);
+                    bNeedWrite = true;
+                }
+            }
 
-            timeval t{0, 1};
-            int ret = select(_maxSocket + 1, &fdRead, &fdWrite, &fdExc, &t); //select 性能瓶颈 最大的集合只有64
+            timeval t{ 0, 1 }; 
+            int ret = 0;
+            //select 性能瓶颈 最大的集合只有64
+            if (bNeedWrite) {
+                ret = select(_maxSocket + 1, &fdRead, &fdWrite, nullptr, &t);
+            } else {
+                ret = select(_maxSocket + 1, &fdRead, nullptr, nullptr, &t);
+            }
             if (ret < 0) {
                 CellLog::Info("Cellserver %d.OnRun.select Error exit\n", _id);
                 pThread->Exit();
@@ -135,11 +151,11 @@ public:
 
             ReadData(fdRead);
             WriteData(fdWrite);
-            WriteData(fdExc);
+            //WriteData(fdExc);
             //CellLog::Info("CellServer%d.OnRun.select: fdRead = %d,fdWrite = %d \n", _id, fdRead.fd_count, fdWrite.fd_count);
-            if (fdExc.fd_count > 0){
-                CellLog::Info("#### fdExc = %d\n", _id, fdExc.fd_count);
-            }
+//             if (fdExc.fd_count > 0){
+//                 CellLog::Info("#### fdExc = %d\n", _id, fdExc.fd_count);
+//             }
             CheckTime();
         }
         return true;

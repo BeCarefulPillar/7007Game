@@ -78,7 +78,7 @@ public:
         fd_set fdWrite;
         FD_ZERO(&fdWrite);
 
-        timeval t = { 0, 10 };
+        timeval t = { 0, 1};
         int ret = 0;
         if (_pClient->NeedWrite()) {
             FD_SET(sock, &fdWrite);
