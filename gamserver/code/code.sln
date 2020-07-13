@@ -9,6 +9,23 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "client", "client\client.vcx
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Memory", "Memory\Memory.vcxproj", "{F1726669-7953-4643-B161-F1B98E8336AF}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{E10CEE43-3962-46DE-9036-CFD6C54E7F68}"
+	ProjectSection(SolutionItems) = preProject
+		depends\include\Cell.hpp = depends\include\Cell.hpp
+		depends\include\CellBuffer.hpp = depends\include\CellBuffer.hpp
+		depends\include\CellClient.hpp = depends\include\CellClient.hpp
+		depends\include\CellLog.hpp = depends\include\CellLog.hpp
+		depends\include\CellNetWork.hpp = depends\include\CellNetWork.hpp
+		depends\include\CellSemaphore.hpp = depends\include\CellSemaphore.hpp
+		depends\include\CellServer.hpp = depends\include\CellServer.hpp
+		depends\include\CellTask.hpp = depends\include\CellTask.hpp
+		depends\include\CellThread.hpp = depends\include\CellThread.hpp
+		depends\include\CellTimestame.hpp = depends\include\CellTimestame.hpp
+		depends\include\EasyTcpServer.hpp = depends\include\EasyTcpServer.hpp
+		depends\include\INetEvent.hpp = depends\include\INetEvent.hpp
+		depends\include\MessageHeader.hpp = depends\include\MessageHeader.hpp
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64

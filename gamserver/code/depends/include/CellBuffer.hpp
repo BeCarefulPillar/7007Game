@@ -87,6 +87,10 @@ public:
         return false;
     }
 
+    bool NeedWrite() {
+        return _nLastPos > 0;
+    }
+
     char* Data() {
         if (_nLastPos > 0) {
             return _pBuff;

@@ -10,12 +10,45 @@ EasyTcpClient *client[cCount];
 std::atomic_int sendCount = 0;
 std::atomic_int readyCount = 0;
 
+class MyClient:public EasyTcpClient {
+public:
+    virtual void OnNetMsg(DataHeader* hd) {
+        if (!hd) {
+            return;
+        }
+        switch (hd->cmd) {
+            case CMD_LOGIN_RESULT: {
+                LoginResult *loginRes = (LoginResult *)hd;
+                //CellLog::Info("recv CMD_LOGIN_RESULT dataLen = %d, %s \n", loginRes->dataLen, loginRes->data);
+            } break;
+            case CMD_LOGOUT_RESULT: {
+                LogoutResult *logoutData = (LogoutResult *)hd;
+                //CellLog::Info("recv CMD_LOGOUT_RESULT dataLen = %d\n", logoutData->dataLen);
+            }break;
+            case CMD_NEW_CLIENT_JOIN: {
+                NewClientJoin *newClient = (NewClientJoin *)hd;
+                //CellLog::Info("recv CMD_NEW_CLIENT_JOIN dataLen = %d sock = %d\n", newClient->dataLen, newClient->sock);
+            }break;
+            case CMD_ERROR: {
+                CellLog::Info("recv CMD_ERROR sock = %d dataLen = %d  \n",_pClient->GetSocket(), hd->dataLen);
+            }break;
+            default: {
+                CellLog::Info("recv 未知消息 sock = %d dataLen = %d  \n", _pClient->GetSocket(), hd->dataLen);
+            }
+        }
+    }
+private:
+
+};
+
+
+
 void cmdThread(EasyTcpClient * client) {
     while (true) {
         char cmdMsg[32];
         scanf("%s", cmdMsg);
         if (0 == strcmp(cmdMsg, "exit")) {
-            printf("线程退出 \n");
+            CellLog::Info("线程退出 \n");
             g_run = false;
             //client->Close();
             break;
@@ -31,7 +64,7 @@ void cmdThread(EasyTcpClient * client) {
             //5 send
             client->SendData(&logoutData, logoutData.dataLen);
         } else {
-            printf("input error \n");
+            CellLog::Info("input error \n");
         }
     }
 }
@@ -53,12 +86,12 @@ void sendTheard(int id) {
     int end = (int)(id) * cCount / tCount;
     //防止抢占资源
     for (int i = begin; i < end; i++) {
-        client[i] = new EasyTcpClient();
+        client[i] = new MyClient();
     }
 
     for (int i = begin; i < end; i++) {
         client[i]->Connet("127.0.0.1", 4567);
-        printf("count = %d \n", i);
+        CellLog::Info("count = %d \n", i);
     }
 
     readyCount++;
@@ -111,13 +144,13 @@ int main() {
     while (g_run) {
         auto t1 = _tTime.GetElapsedSecond();
         if (t1 > 1.0) {
-            printf("thread<%d> ,time <%lf>, client <%d>, sendCount<%d>, \n", (int)tCount, t1, (int)cCount, (int)sendCount);
+            CellLog::Info("thread<%d> ,time <%lf>, client <%d>, sendCount<%d>, \n", (int)tCount, t1, (int)cCount, (int)sendCount);
             _tTime.Update();
             sendCount = 0;
         }
     }
 
-    printf("client out \n");
+    CellLog::Info("client out \n");
 
     getchar();
     return 0;

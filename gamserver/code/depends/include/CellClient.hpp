@@ -18,7 +18,7 @@ private:
     //上次发送时间
     time_t _dtSend;
 public:
-    CellClient(SOCKET sock, sockaddr_in addr):
+    CellClient(SOCKET sock, sockaddr_in addr = {}) :
         _sendBuff(SEND_BUFF_SIZE), _recvBuff(REVC_BUFF_SIZE){
         _sock = sock;
         _addr = addr;
@@ -85,6 +85,9 @@ public:
 
     void ResetDTHeart() {
         _dtHeart = 0;
+    }
+    bool NeedWrite() {
+        return _sendBuff.NeedWrite();
     }
 
     bool CheckHeart(time_t dt) {
