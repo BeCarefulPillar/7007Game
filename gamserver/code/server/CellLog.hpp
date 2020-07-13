@@ -7,7 +7,6 @@ class CellLog {
 private:
     FILE* _logFile;
     CellTaskServer _taskServer;
-public:
     CellLog() {
         _taskServer.Start();
     }

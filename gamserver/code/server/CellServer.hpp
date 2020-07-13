@@ -23,7 +23,6 @@ private:
     CellThread _thread;
     int _id;
     bool _clientChange;
-
 private:
     void ClearClients() {
         for (auto c : _client) {
