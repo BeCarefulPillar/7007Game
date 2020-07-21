@@ -173,18 +173,19 @@ public:
     void WriteData(fd_set& fdWrite) {
 #ifdef WIN32
         for (int i = 0; i < (int)fdWrite.fd_count; i++) {
-            auto iter = _client.find(fdWrite.fd_array[i]);
-            if (iter != _client.end()) {
-                int ret = iter->second->SendDataReal();
+            auto client = _client[fdWrite.fd_array[i]];
+            if (client) {
+                int ret = client->SendDataReal();
                 if (ret == -1) {
                     if (_pNetEvent) {
-                        _pNetEvent->OnNetLevel(iter->second);
+                        _pNetEvent->OnNetLevel(client);
                     }
                     _clientChange = true;
-                    delete iter->second;
-                    _client.erase(iter);
+                    delete client;
+                    _client.erase(fdWrite.fd_array[i]);
                 }
             }
+           
         }
 
 #else
