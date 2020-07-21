@@ -1,6 +1,15 @@
-#ifndef _CELL_TIMESTAME_hpp
+﻿#ifndef _CELL_TIMESTAME_hpp
 #define _CELL_TIMESTAME_hpp
 #include <chrono>
+
+class CellTime {
+public:
+    //获取当前时间戳（ms）
+    static time_t GetNowInMillSec() {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now().time_since_epoch()).count();
+    }
+};
+
 class CellTimestame {
 private:
     std::chrono::time_point<std::chrono::high_resolution_clock> _begin;

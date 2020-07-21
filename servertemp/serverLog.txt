@@ -1,0 +1,11 @@
+[2020-6-6 9:39:43]CellLog::SetLogPath success, <serverLog.txt,w> 
+[2020-6-6 9:39:43]socket初始化成功 
+[2020-6-6 9:39:43]连接端口<port = 4567> 成功 
+[2020-6-6 9:39:43]监听成功 
+[2020-6-6 9:39:44]thread<4> ,time <1.000632>, socket <312>, client <0>, recvCount<0>, msg<0>
+[2020-6-6 9:39:45]thread<4> ,time <1.000895>, socket <312>, client <0>, recvCount<0>, msg<0>
+[2020-6-6 9:39:46]thread<4> ,time <1.000375>, socket <312>, client <0>, recvCount<0>, msg<0>
+[2020-6-6 9:39:47]thread<4> ,time <1.000404>, socket <312>, client <0>, recvCount<0>, msg<0>
+[2020-6-6 9:39:48]thread<4> ,time <1.000832>, socket <312>, client <0>, recvCount<0>, msg<0>
+[2020-6-6 9:39:49]thread<4> ,time <1.000197>, socket <312>, client <0>, recvCount<0>, msg<0>
+[2020-6-6 9:39:50]thread<4> ,time <1.000241>, socket <312>, client <0>, recvCount<0>, msg<0>
