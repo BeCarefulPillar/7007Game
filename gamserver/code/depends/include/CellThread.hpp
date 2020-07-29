@@ -15,6 +15,10 @@ private:
     std::mutex _mutex;
     bool _isRun = false;
 public:
+    static void Sleep(int time) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(time));
+    }
+public:
     void Start(EventCall onCreate = nullptr, EventCall onRun = nullptr, EventCall onDestory = nullptr) {
         std::lock_guard<std::mutex> lock(_mutex);
         if (!_isRun) {

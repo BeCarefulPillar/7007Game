@@ -17,8 +17,10 @@ public:
     }
 
     ~CellBuffer() {
-        delete[]_pBuff;
-        _pBuff = nullptr;
+        if (_pBuff) {
+            delete[]_pBuff;
+            _pBuff = nullptr;
+        }
     }
 
     bool Push(const char* pData, int nLen){ 

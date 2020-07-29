@@ -18,13 +18,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{E10C
 		depends\include\CellNetWork.hpp = depends\include\CellNetWork.hpp
 		depends\include\CellSemaphore.hpp = depends\include\CellSemaphore.hpp
 		depends\include\CellServer.hpp = depends\include\CellServer.hpp
+		depends\include\CellStream.hpp = depends\include\CellStream.hpp
 		depends\include\CellTask.hpp = depends\include\CellTask.hpp
 		depends\include\CellThread.hpp = depends\include\CellThread.hpp
 		depends\include\CellTimestame.hpp = depends\include\CellTimestame.hpp
+		depends\include\EasyTcpClient.hpp = depends\include\EasyTcpClient.hpp
 		depends\include\EasyTcpServer.hpp = depends\include\EasyTcpServer.hpp
 		depends\include\INetEvent.hpp = depends\include\INetEvent.hpp
 		depends\include\MessageHeader.hpp = depends\include\MessageHeader.hpp
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HelloSocket", "HelloSocket\HelloSocket.vcxproj", "{FA922A3F-F5D5-41D2-89D7-9DE3D2E0368A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -58,6 +62,14 @@ Global
 		{F1726669-7953-4643-B161-F1B98E8336AF}.Release|x64.Build.0 = Release|x64
 		{F1726669-7953-4643-B161-F1B98E8336AF}.Release|x86.ActiveCfg = Release|Win32
 		{F1726669-7953-4643-B161-F1B98E8336AF}.Release|x86.Build.0 = Release|Win32
+		{FA922A3F-F5D5-41D2-89D7-9DE3D2E0368A}.Debug|x64.ActiveCfg = Debug|x64
+		{FA922A3F-F5D5-41D2-89D7-9DE3D2E0368A}.Debug|x64.Build.0 = Debug|x64
+		{FA922A3F-F5D5-41D2-89D7-9DE3D2E0368A}.Debug|x86.ActiveCfg = Debug|Win32
+		{FA922A3F-F5D5-41D2-89D7-9DE3D2E0368A}.Debug|x86.Build.0 = Debug|Win32
+		{FA922A3F-F5D5-41D2-89D7-9DE3D2E0368A}.Release|x64.ActiveCfg = Release|x64
+		{FA922A3F-F5D5-41D2-89D7-9DE3D2E0368A}.Release|x64.Build.0 = Release|x64
+		{FA922A3F-F5D5-41D2-89D7-9DE3D2E0368A}.Release|x86.ActiveCfg = Release|Win32
+		{FA922A3F-F5D5-41D2-89D7-9DE3D2E0368A}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
