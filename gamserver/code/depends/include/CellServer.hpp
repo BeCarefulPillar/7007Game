@@ -3,7 +3,6 @@
 
 #include "INetEvent.hpp"
 #include "Cell.hpp"
-#include "CellSemaphore.hpp"
 
 #include <map>
 #include <vector>

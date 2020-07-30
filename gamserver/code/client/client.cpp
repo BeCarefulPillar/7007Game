@@ -128,7 +128,6 @@ void sendTheard(int id) {
 }
 
 int main() {
-
     std::thread cmd(cmdThread, client[0]);
     cmd.detach(); //和主线程分离
 
