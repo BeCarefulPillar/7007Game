@@ -1,5 +1,5 @@
-local dbconf= require "conf.db_conf"
-local dbutils = require "lua/db_utils"
+--local dbconf= require "conf.db_conf"
+--local dbutils = require "lua/db_utils"
 local M = {}
 
 local function getLogDb()
@@ -16,8 +16,9 @@ end
 
 function M.logP(message)
     local message = debug.traceback("[INFO]:" .. message .. "    " .. os.date("%Y-%m-%d %H:%M:%S"), 2)
+    print(message)
     writeFile(message .. "\n")
-    local db = getLogDb()
+    --[[local db = getLogDb()
     if not db then
         return
     end
@@ -28,14 +29,15 @@ function M.logP(message)
     local fileline = src .. ":" .. line
 
     local res, err, errcode, sqlstate = db:query(string.format("INSERT INTO rogatewaylog(level,fileline,message,time) VALUES('INFO',%s,%s,NOW())", ngx.quote_sql_str(fileline), ngx.quote_sql_str(message)))
-    db:close()
+    db:close()--]]
 end
 
 function M.logE(message, isSystemError)
     local fileline = message
     local message = debug.traceback("[ERROR]:" .. message .. "    " .. os.date("%Y-%m-%d %H:%M:%S"), 2)
+    print(message)
     writeFile(message .. "\n")
-    local db = getLogDb()
+    --[[ local db = getLogDb()
     if not db then
         return
     end
@@ -49,7 +51,7 @@ function M.logE(message, isSystemError)
     end
 
     local res, err, errcode, sqlstate = db:query(string.format("INSERT INTO rogatewaylog(level,fileline,message,time) VALUES('ERROR',%s,%s,NOW())", ngx.quote_sql_str(fileline), ngx.quote_sql_str(message)))
-    db:close()
+    db:close()--]]
 end
 
 function M.run_safe(fn)

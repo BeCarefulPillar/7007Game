@@ -1,6 +1,6 @@
 ﻿#include <iostream>
 #include "EasyTcpClient.hpp"
-//#include "CellStream.hpp"
+#include "CellStream.hpp"
 
 class MyClient :public EasyTcpClient {
 public:
@@ -36,6 +36,9 @@ int main()
 {
     MyClient client;
     client.Connet("127.0.0.1", 4567);
+    CellStream s;
+
+    //client.SendData();
     while (client.IsRun()) {
         client.OnRun();
         CellThread::Sleep(10);

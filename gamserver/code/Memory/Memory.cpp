@@ -49,7 +49,7 @@ void cmdThread() {
 
 int main()
 {
-    std::thread cmd(cmdThread, 1);
+    std::thread cmd(cmdThread);
     cmd.detach(); //和主线程分离
     
     sem.Wait();
