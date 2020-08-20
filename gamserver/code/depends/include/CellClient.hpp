@@ -74,10 +74,13 @@ public:
             return ret;
         }
 
-        int nSendLen = hd->dataLen;
-        const char* pSendData = (const char*)hd;
-        if (_sendBuff.Push((const char*)hd, hd->dataLen)) {
-            return hd->dataLen;
+        return SendData((const char*)hd, hd->dataLen);
+    }
+
+    int SendData(const char* pData, int len) {
+        int ret = SOCKET_ERROR;
+        if (_sendBuff.Push(pData, len)) {
+            return len;
         }
 
         return ret;

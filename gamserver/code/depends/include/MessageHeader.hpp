@@ -17,8 +17,8 @@ struct DataHeader {
         cmd = CMD_ERROR;
         dataLen = sizeof(DataHeader);
     };
-    int cmd;
-    int dataLen;
+    uint16_t cmd;
+    uint16_t dataLen;
 };
 
 //DataPackage

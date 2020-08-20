@@ -23,25 +23,62 @@ public:
         _bDelete = true;
     }
 
-    ~CellStream() {
+    virtual ~CellStream() {
         if (_bDelete && _pBuff) {
             delete[]_pBuff;
             _pBuff = nullptr;
         }
     }
-    ////read
 
+    inline bool CanRead(int n) {
+        return _nSize - _nReadPos >= n;
+    }
+
+    inline bool CanWrite(int n) {
+        return _nSize - _nWritePos >= n;
+    }
+
+    char* Data() {
+        return _pBuff;
+    }
+
+    int Length() {
+        return _nWritePos;
+    }
+
+    void SetWritePos(int n) {
+        _nWritePos = n;
+    }
+
+    int Length() {
+        return _nWritePos;
+    }
+
+    void Push(int n) {
+        _nReadPos += n;
+    }
+
+    void Pop(int n) {
+        _nWritePos += n;
+    }
+
+    ////read
     template<typename T>
     bool Read(T& n, bool bOffset = true) {
         auto nLen = sizeof(T);
-        if (_nReadPos + nLen <= _nSize) {
+        if (CanRead(nLen)) {
             memcpy(&n, _pBuff + _nReadPos, nLen);
             if (bOffset) {
-                _nReadPos += nLen;
+                Push(nLen);
             }
             return true;
         }
         return false;
+    }
+
+    template<typename T>
+    bool ReadOnly(T& n) {
+        return Read(n, false);
     }
 
     //数组
@@ -53,11 +90,11 @@ public:
         if (nArrLen < len) {
             //计算数组的实际字节长度
             auto nLen = nArrLen * sizeof(T);
-            if (_nReadPos + nLen + sizeof(uint32_t) <= _nSize) {
+            if (CanRead(nLen + sizeof(uint32_t))) {
                 //计算已读位置+数组长度所占有空间
-                _nReadPos += sizeof(uint32_t);
+                Push(sizeof(uint32_t));
                 memcpy(pArray, _pBuff + _nReadPos, nLen);
-                _nReadPos += nLen;
+                Push(nLen);
                 return nArrLen;
             }
         }
@@ -97,9 +134,9 @@ public:
     bool Write(T n) {
         size_t nLen = sizeof(T);
         //判断能不能写入
-        if (_nWritePos + nLen <= _nSize) {
+        if (CanWrite(nLen)) {
             memcpy(_pBuff + _nWritePos, &n, nLen);
-            _nWritePos += nLen;
+            Pop(nLen)
             return true;
         }
         return false;
@@ -109,11 +146,11 @@ public:
     template<typename T>
     bool WriteArray(T* pData, uint32_t len) {
         auto nLen = sizeof(T)*len;
-        if (_nWritePos + nLen + sizeof(uint32_t) <= _nSize) {
+        if (CanWrite(nLen + sizeof(uint32_t))) {
             //写入数组长度
             WriteInt32(len);
             memcpy(_pBuff + _nWritePos, pData, nLen);
-            _nWritePos += nLen;
+            Pop(nLen)
             return true;
         }
         return false;

@@ -133,11 +133,18 @@ public:
     //响应网络消息
     virtual void OnNetMsg(DataHeader* hd) = 0;
 
-    int SendData(DataHeader* hd, int nLen) {
+    int SendData(DataHeader* hd) {
         if (!_pClient){
             return 0;
         }
         return _pClient->SendData(hd);
+    }
+
+    int SendData(const char* pData, int len) {
+        if (!_pClient) {
+            return 0;
+        }
+        return _pClient->SendData(pData, len);
     }
 
 private:
