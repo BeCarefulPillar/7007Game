@@ -50,10 +50,6 @@ public:
         _nWritePos = n;
     }
 
-    int Length() {
-        return _nWritePos;
-    }
-
     void Push(int n) {
         _nReadPos += n;
     }
@@ -136,7 +132,7 @@ public:
         //判断能不能写入
         if (CanWrite(nLen)) {
             memcpy(_pBuff + _nWritePos, &n, nLen);
-            Pop(nLen)
+            Pop(nLen);
             return true;
         }
         return false;
@@ -150,7 +146,7 @@ public:
             //写入数组长度
             WriteInt32(len);
             memcpy(_pBuff + _nWritePos, pData, nLen);
-            Pop(nLen)
+            Pop(nLen);
             return true;
         }
         return false;

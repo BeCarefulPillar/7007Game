@@ -9,25 +9,25 @@ public:
             return;
         }
 
-        CellRecvStream s(hd);
-        auto cmd = s.GetNetCmd();
-        auto len = s.GetNetLength();
+        CellRecvStream r(hd);
+        auto cmd = r.GetNetCmd();
+        auto len = r.GetNetLength();
 
         switch (hd->cmd) {
         case CMD_LOGIN_RESULT: {
-            auto n1 = s.ReadInt16();
-            auto n2 = s.ReadInt32();
-            auto n3 = s.ReadFloat();
-            auto n4 = s.ReadDouble();
+            auto n1 = r.ReadInt16();
+            auto n2 = r.ReadInt32();
+            auto n3 = r.ReadFloat();
+            auto n4 = r.ReadDouble();
             char un[32] = {};
-            s.ReadArray(un, 32);
+            r.ReadArray(un, 32);
             char pw[32] = {};
-            s.ReadArray(pw, 32);
+            r.ReadArray(pw, 32);
             int data[10] = {};
-            s.ReadArray(data, 10);
+            r.ReadArray(data, 10);
 
             
-            //LoginResult *loginRes = (LoginResult *)hd;
+            LoginResult *loginRes = (LoginResult *)hd;
             //CellLog::Info("recv CMD_LOGIN_RESULT dataLen = %d, %s \n", loginRes->dataLen, loginRes->data);
         } break;
         case CMD_LOGOUT_RESULT: {
@@ -67,6 +67,21 @@ int main()
     int b[] = {1,2,3,4,5};
     s.WriteArray(b, 5);
     s.Finsh();
+
+
+    CellRecvStream r(s.Data(), s.Length());
+    auto cmd = r.GetNetCmd();
+    auto len = r.GetNetLength();
+    auto n1 = r.ReadInt16();
+    auto n2 = r.ReadInt32();
+    auto n3 = r.ReadFloat();
+    auto n4 = r.ReadDouble();
+    char un[32] = {};
+    r.ReadArray(un, 32);
+    char pw[32] = {};
+    r.ReadArray(pw, 32);
+    int data[10] = {};
+    r.ReadArray(data, 10);
 
     client.SendData(s.Data(), s.Length());
     while (client.IsRun()) {

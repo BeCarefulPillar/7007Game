@@ -15,6 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "include", "include", "{E10C
 		depends\include\CellBuffer.hpp = depends\include\CellBuffer.hpp
 		depends\include\CellClient.hpp = depends\include\CellClient.hpp
 		depends\include\CellLog.hpp = depends\include\CellLog.hpp
+		depends\include\CellMsgStream.hpp = depends\include\CellMsgStream.hpp
 		depends\include\CellNetWork.hpp = depends\include\CellNetWork.hpp
 		depends\include\CellSemaphore.hpp = depends\include\CellSemaphore.hpp
 		depends\include\CellServer.hpp = depends\include\CellServer.hpp

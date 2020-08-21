@@ -1,6 +1,6 @@
 ﻿#ifndef _MESSAGE_HEADER_HPP_
 #define _MESSAGE_HEADER_HPP_
-
+#include<cstdint>
 enum CMD {
     CMD_ERROR = 0,
     CMD_LOGIN,

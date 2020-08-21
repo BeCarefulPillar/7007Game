@@ -4,8 +4,8 @@
 #include "CellTimestame.hpp"
 
 bool g_run = true;
-const int cCount = 10;
-const int tCount = 4;
+const int cCount = 1;
+const int tCount = 1;
 EasyTcpClient *client[cCount];
 std::atomic_int sendCount = 0;
 std::atomic_int readyCount = 0;
@@ -19,7 +19,7 @@ public:
         switch (hd->cmd) {
             case CMD_LOGIN_RESULT: {
                 LoginResult *loginRes = (LoginResult *)hd;
-                //CellLog::Info("recv CMD_LOGIN_RESULT dataLen = %d, %s \n", loginRes->dataLen, loginRes->data);
+                CellLog::Info("recv CMD_LOGIN_RESULT dataLen = %d, %s \n", loginRes->dataLen, loginRes->data);
             } break;
             case CMD_LOGOUT_RESULT: {
                 LogoutResult *logoutData = (LogoutResult *)hd;
@@ -88,7 +88,8 @@ void sendTheard(int id) {
     }
 
     for (int i = begin; i < end; i++) {
-        client[i]->Connet("127.0.0.1", 4567);
+        client[i]->Connet("192.168.1.181", 4500);
+        //client[i]->Connet("127.0.0.1", 4567);
         CellLog::Info("count = %d \n", i);
     }
 
@@ -99,18 +100,18 @@ void sendTheard(int id) {
     }
    
     std::thread t1(recvTheard, begin, end);
-    t1.detach();
 
-    //client.InitSocket();
+    t1.detach();
     const int msgCount = 1;
     Login loginData[msgCount];
 
     for (int i = 0; i < msgCount; i++) {
         strcpy(loginData[i].account, "ssss");
         strcpy(loginData[i].password, "123");
+        strcpy(loginData[i].data, "data");
     }
     int nLen = sizeof(loginData);
-    while (g_run) {
+    //while (g_run) {
         //client.OnRun();
         //test
         for (int i = begin; i < end; i++) {
@@ -119,12 +120,12 @@ void sendTheard(int id) {
             }
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }
+    //}
     //---------------------------
-    for (int i = begin; i < end; i++) {
-        client[i]->Close();
-        delete client[i];
-    }
+//     for (int i = begin; i < end; i++) {
+//         client[i]->Close();
+//         delete client[i];
+//     }
 }
 
 int main() {
