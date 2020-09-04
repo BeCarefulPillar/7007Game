@@ -17,13 +17,13 @@ public:
         case CMD_LOGIN_RESULT: {
             auto n1 = r.ReadInt16();
             auto n2 = r.ReadInt32();
-            auto n3 = r.ReadFloat();
-            auto n4 = r.ReadDouble();
+            //auto n3 = r.ReadFloat();
+            //auto n4 = r.ReadDouble();
             char un[32] = {};
             r.ReadArray(un, 32);
             char pw[32] = {};
             r.ReadArray(pw, 32);
-            int data[10] = {};
+            char data[10] = {};
             r.ReadArray(data, 10);
 
             
@@ -49,44 +49,38 @@ public:
 private:
 
 };
+
+
+void getStr(char * r) {
+}
+
 int main()
 {
+    const char* abc = "1111111111";
+    void *d = &abc;
+
+    int zzz = 10;
+    char* c = (char*) &zzz;
+
     MyClient client;
-    client.Connet("127.0.0.1", 4567);
+    //client.Connet("127.0.0.1", 4567);
+
+    client.Connet("192.168.1.181", 4500);
     CellSendStream s;
-    s.SetNetCmd(CMD_LOGIN);
-    s.WriteInt16(1);
-    s.WriteInt32(2);
-    s.WriteFloat(3.0f);
-    s.WriteDouble(4.5);
+    s.SetNetCmd(555);
 
     const char* str = "what";
     s.WriteArray(str, strlen(str));
     char a[] = "eiei";
     s.WriteArray(a, strlen(a));
-    int b[] = {1,2,3,4,5};
-    s.WriteArray(b, 5);
+    const char* b = "222222222";
+    s.WriteArray(b, strlen(b));
     s.Finsh();
 
-
-    CellRecvStream r(s.Data(), s.Length());
-    auto cmd = r.GetNetCmd();
-    auto len = r.GetNetLength();
-    auto n1 = r.ReadInt16();
-    auto n2 = r.ReadInt32();
-    auto n3 = r.ReadFloat();
-    auto n4 = r.ReadDouble();
-    char un[32] = {};
-    r.ReadArray(un, 32);
-    char pw[32] = {};
-    r.ReadArray(pw, 32);
-    int data[10] = {};
-    r.ReadArray(data, 10);
-
-    client.SendData(s.Data(), s.Length());
     while (client.IsRun()) {
+        client.SendData(s.Data(), s.Length());
         client.OnRun();
-        CellThread::Sleep(10);
+        CellThread::Sleep(100);
     }
     return 0;
 }

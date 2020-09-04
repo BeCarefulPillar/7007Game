@@ -2,6 +2,11 @@ local hotfix = require "hotfix"
 local test =  require "test"
 local test_hot = require "test_hot"
 local log = require"log"
+local Utils = require"Utils"
+
+
+local stream = require"stream"
+
 --[[print("before hotfix")
 for i = 1, 5 do 
     test.print_index() -- 热更前，调用 print_index，打印 index 的值
@@ -30,7 +35,7 @@ end
 --]]
 --test.show()
 
-
+--[[
 co = coroutine.create(
     function (x,y)
         local temp=10;
@@ -60,3 +65,89 @@ end)
 for i = 1, 5 do
     print(fun())
 end
+--]]
+
+--[[local function getInt(str)
+    local bytes = {0,0,0,0}
+    local len = string.len(str)
+    for i=1,len do
+        local index = len - i + 1
+        bytes[index] = string.byte(string.sub(str,i,i))
+    end
+    return Utils.bufToInt32(bytes[4],bytes[3],bytes[2],bytes[1])
+    -- body
+end
+
+local t={}
+local function getByte(s, size)
+    for i=1,string.len(s) do
+        table.insert(t,string.byte(string.sub(s,i,i)))
+    end
+end
+
+local str = Utils.int32ToBufStr(1)
+getByte("23123", 80)
+
+for i=1,#t do print(t[i]) end--]]
+
+--[[
+local proto = {}
+proto[15] = {
+     {name = "name", pType = "str"},
+     {name = "age", pType = "int"},
+     {name = "isHeath", pType ="bool"},
+}
+
+local function read(data)
+
+end
+
+local function testProto(msgId, data)
+    local p = proto[msgId]
+    if not p then
+        assert(false,"not find proto")
+    end
+
+    for i = 1,#p do
+        local pType = p[i].pType
+        local pName = p[i].name
+        if pType == "str" then
+
+        elseif pType == "int" then
+
+        elseif pType == "bool" then
+
+        end
+    end
+    
+end
+
+local str = "1234567"
+local len = 2
+local pos = 1
+local n = string.sub(str, pos + 1, pos + len)
+print(n)
+--]]
+
+
+local s = stream.new()
+s:WriteHeader(2)
+
+s:WriteInt8(11)
+s:WriteInt16(555)
+s:WriteInt32(12344)    
+s:WriteStr("1111")
+s:WriteStr("sunkang")
+s:WriteStr("ll")
+s:Finsh()
+
+local r = stream.new({_pBuff =tostring(s:Data()), _nSize = s._nSize})
+print(r._pBuff)
+print(r:ReadInt16())
+print(r:ReadInt16())
+print(r:ReadInt8())
+print(r:ReadInt16())
+print(r:ReadInt32())
+print(r:ReadStr())
+print(r:ReadStr())
+print(r:ReadStr())

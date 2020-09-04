@@ -1,0 +1,6 @@
+[2020-7-21 3:3:41]CellLog::SetLogPath success, <serverLog.txt,w> 
+[2020-7-21 11:3:41]socket初始化成功 
+[2020-7-21 3:3:41]连接端口<port = 4567> 成功 
+[2020-7-21 11:3:41]监听成功 
+[2020-7-21 3:3:42]thread<4> ,time <1.000516>, socket <288>, client <0>, recvCount<0>, msg<0>
+[2020-7-21 3:3:43]thread<4> ,time <1.000780>, socket <288>, client <0>, recvCount<0>, msg<0>
