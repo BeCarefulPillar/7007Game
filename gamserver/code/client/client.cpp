@@ -55,12 +55,12 @@ void cmdThread(EasyTcpClient * client) {
             strcpy(loginData.account, "ssss");
             strcpy(loginData.password, "123");
             //5 send
-            client->SendData(&loginData, loginData.dataLen);
+            client->SendData(&loginData);
         } else if (0 == strcmp(cmdMsg, "logout")) {
             Logout logoutData;
             strcpy(logoutData.account, "ssss");
             //5 send
-            client->SendData(&logoutData, logoutData.dataLen);
+            client->SendData(&logoutData);
         } else {
             CellLog::Info("input error \n");
         }
@@ -88,7 +88,7 @@ void sendTheard(int id) {
     }
 
     for (int i = begin; i < end; i++) {
-        client[i]->Connet("192.168.1.181", 4500);
+        client[i]->Connet("192.168.1.181", 4567);
         //client[i]->Connet("127.0.0.1", 4567);
         CellLog::Info("count = %d \n", i);
     }
@@ -115,7 +115,7 @@ void sendTheard(int id) {
         //client.OnRun();
         //test
         for (int i = begin; i < end; i++) {
-            if (SOCKET_ERROR != client[i]->SendData(loginData, nLen)) {
+            if (SOCKET_ERROR != client[i]->SendData((const char*)loginData, nLen)) {
                 sendCount+=msgCount;
             }
         }
