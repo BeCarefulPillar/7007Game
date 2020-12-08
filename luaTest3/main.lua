@@ -129,7 +129,7 @@ local n = string.sub(str, pos + 1, pos + len)
 print(n)
 --]]
 
-
+--[[
 local s = stream.new()
 s:WriteHeader(2)
 
@@ -151,3 +151,94 @@ print(r:ReadInt32())
 print(r:ReadStr())
 print(r:ReadStr())
 print(r:ReadStr())
+--]]
+
+
+
+local function Printtb(t)
+    local print_r_cache = {}
+    local output = {}
+    local function sub_print_r(t, indent)
+        if (print_r_cache[tostring(t)]) then
+            table.insert(output, (indent.."*"..tostring(t)))
+        else
+            print_r_cache[tostring(t)] = true
+            if (type(t) == "table") then
+                for pos,val in pairs(t) do
+                    if (type(val) == "table") then
+                        table.insert(output, indent.."["..pos.."] => "..tostring(t).." {")
+                        sub_print_r(val, indent..string.rep(" ",string.len(pos)+8))
+                        table.insert(output, indent..string.rep(" ",string.len(pos)+6).."}")
+                    elseif (type(val) == "string") then
+                        table.insert(output, (indent.."["..pos..'] => "'..val..'"'))
+
+                    else
+                        table.insert(output, (indent.."["..pos.."] => "..tostring(val)))
+                    end
+                end
+            else
+                table.insert(output, (indent..tostring(t)))
+            end
+        end
+    end
+
+    if (type(t) == "table") then
+        table.insert(output, (tostring(t).." {"))
+        sub_print_r(t,"  ")
+        table.insert(output, ("}"))
+    else
+        sub_print_r(t,"  ")
+    end
+    print(table.concat(output, "\n"))
+end
+
+--[[
+
+local TestSk = require "TestSk"
+local test = TestSk.new()
+
+test.id = 100
+
+test.id = 1000
+
+test.testIndex = 10000--]]
+--test:upIndex()
+--Printtb(test)
+--[[
+test.aa = 1
+local cc= {1,2}
+test.aa = cc
+--]]
+
+
+--[[function f(tb,x,y) return x+y+tb.n end
+local b={}
+local M = {}
+
+function M:add(a, b)
+    self.n = a + b
+    return a + b
+end
+b.__call = f
+b.__index = M
+b.__newindex = function(t, k, v)
+    error("attempt to update a read-only table!")
+end
+local a = {}
+a.n=100
+setmetatable(a,b)
+print(a(1,2))
+
+
+a.n = 100
+
+print(a["n"])
+index
+for i,v in pairs(a) do
+    print(i,v)
+end--]]
+
+--[[coroutine.yield(require("test").show())
+
+print("111111")--]]
+print(math.random(1, 40))

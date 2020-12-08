@@ -8,6 +8,7 @@ end
 
 function test.show()
     print("show:", index)
+    return index
 end
 
 return test
